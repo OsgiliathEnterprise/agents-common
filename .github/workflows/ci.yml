@@ -1,0 +1,376 @@
+name: CI Build & Test
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  BRIDGE_VERSION: "1.0.16"
+  SDK_VERSION: "0.0.4"
+  SPRING_PROFILES_ACTIVE: github
+  MODEL_TOKEN: ${{ secrets.MODEL_TOKEN }}
+
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    name: Preflight
+    timeout-minutes: 10
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v5
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Validate Gradle wrapper
+        uses: gradle/actions/wrapper-validation@0723195856401067f7a2779048b490ace7a47d7c # v5.1.0
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      - name: Verify dependency verification config
+        run: |
+          test -f gradle/verification-metadata.xml
+          grep -E '^org\.gradle\.dependency\.verification=' gradle.properties
+
+  build:
+    runs-on: ubuntu-latest
+    name: Build
+    needs: preflight
+    timeout-minutes: 20
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v5
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      - name: Assemble project
+        run: ./gradlew --dependency-verification lenient assemble --stacktrace
+
+      - name: Upload build folder
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: build-folder
+          path: build/
+          retention-days: 7
+
+      - name: Upload build logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: build-logs
+          path: |
+            build/reports/
+            .gradle/
+          retention-days: 7
+
+  test:
+    runs-on: ubuntu-latest
+    name: Test & Coverage
+    needs: build
+    timeout-minutes: 25
+    permissions:
+      contents: read
+      checks: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v5
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      - name: Download build folder
+        uses: actions/download-artifact@v8
+        with:
+          name: build-folder
+          path: .
+
+      - name: Run tests and generate JaCoCo report
+        run: ./gradlew --dependency-verification lenient test jacocoTestReport --stacktrace
+
+      - name: Upload build folder for downstream analysis
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: build-folder-tested
+          path: build/
+          retention-days: 30
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-results
+          path: build/test-results/
+          retention-days: 30
+
+      - name: Upload JaCoCo coverage report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: jacoco-report
+          path: build/reports/jacoco/test/jacocoTestReport.xml
+          retention-days: 30
+
+      - name: Upload Sonar inputs (coverage + binaries)
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: sonar-inputs
+          path: |
+            build/reports/jacoco/test/jacocoTestReport.xml
+            build/classes/
+            build/tmp/kotlin-classes/
+          retention-days: 30
+
+      - name: Upload test HTML reports
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-reports
+          path: build/reports/tests/
+          retention-days: 30
+
+      - name: Publish test report
+        if: always() && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.fork == false)
+        uses: EnricoMi/publish-unit-test-result-action@c950f6fb443cb5af20a377fd0dfaa78838901040
+        with:
+          files: build/test-results/**/TEST-*.xml
+          check_name: Test Results
+
+      - name: Add test summary
+        if: always()
+        run: |
+          {
+            echo "## Build & Test Results"
+            echo "- Test results artifact: test-results"
+            echo "- Coverage report artifact: jacoco-report"
+            echo "- Test HTML report artifact: test-reports"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload build logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-build-logs
+          path: |
+            build/reports/
+            .gradle/
+          retention-days: 7
+
+  code-quality:
+    runs-on: ubuntu-latest
+    name: Code Quality Checks
+    needs: build
+    continue-on-error: ${{ github.event_name == 'pull_request' }}
+    timeout-minutes: 20
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v5
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      - name: Run quality checks
+        run: ./gradlew --dependency-verification lenient check --stacktrace
+
+      - name: Upload code quality reports
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: code-quality-reports
+          path: build/reports/
+          retention-days: 30
+
+  sonar:
+    runs-on: ubuntu-latest
+    name: SonarQube Analysis
+    needs: [test, code-quality]
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.fork == false
+    timeout-minutes: 20
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v5
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      - name: Download build folder from test job
+        uses: actions/download-artifact@v8
+        with:
+          name: build-folder-tested
+          path: .
+
+      - name: Normalize transited build layout
+        run: |
+          if [ ! -d build ] && { [ -d classes ] || [ -d reports ] || [ -d tmp ]; }; then
+            mkdir -p build
+            [ -d classes ] && mv classes build/
+            [ -d reports ] && mv reports build/
+            [ -d tmp ] && mv tmp build/
+          fi
+
+          # Safety net: if transit did not include compiled outputs, rebuild just classes.
+          if [ ! -d build/classes ]; then
+            ./gradlew --dependency-verification lenient classes --stacktrace
+          fi
+
+      - name: SonarQube analysis
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+          SONAR_ORGANIZATION: ${{ secrets.SONAR_ORGANIZATION }}
+          SONAR_PROJECT_KEY: ${{ secrets.SONAR_PROJECT_KEY }}
+        run: |
+          BINARIES=""
+          for d in build/classes/java/main build/classes/kotlin/main build/classes/main; do
+            if [ -d "$d" ]; then
+              if [ -z "$BINARIES" ]; then
+                BINARIES="$d"
+              else
+                BINARIES="$BINARIES,$d"
+              fi
+            fi
+          done
+
+          if [ -z "$BINARIES" ]; then
+            echo "No main class directories found under build/classes."
+            exit 1
+          fi
+
+          ./gradlew --dependency-verification lenient sonar \
+            -Dsonar.qualitygate.wait=true \
+            -Dsonar.coverage.jacoco.xmlReportPaths=build/reports/jacoco/test/jacocoTestReport.xml \
+            -Dsonar.java.binaries="$BINARIES" \
+            --stacktrace
+
+  dependency-submission:
+    runs-on: ubuntu-latest
+    name: Submit Dependency Graph
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    timeout-minutes: 10
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v5
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      - name: Submit dependency graph
+        uses: gradle/actions/dependency-submission@0723195856401067f7a2779048b490ace7a47d7c # v5.1.0
+
+  ci-summary:
+    runs-on: ubuntu-latest
+    name: CI Summary
+    needs: [build, test, code-quality, sonar, dependency-submission]
+    if: always()
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: Add workflow summary
+        run: |
+          {
+            echo "## CI Stage Summary"
+            echo "- Build: ${{ needs.build.result }}"
+            echo "- Test & Coverage: ${{ needs.test.result }}"
+            echo "- Code Quality: ${{ needs.code-quality.result }}"
+            echo "- SonarQube Analysis: ${{ needs.sonar.result }}"
+            echo "- Dependency Graph Submission: ${{ needs.dependency-submission.result }}"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Create PR summary comment
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false
+        uses: actions/github-script@v8
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const body = [
+              '## CI Stage Summary',
+              '',
+              `- Build: ${{ needs.build.result }}`,
+              `- Test & Coverage: ${{ needs.test.result }}`,
+              `- Code Quality: ${{ needs.code-quality.result }}`,
+              `- SonarQube Analysis: ${{ needs.sonar.result }}`,
+              `- Dependency Graph Submission: ${{ needs.dependency-submission.result }}`,
+              '',
+              '*Generated by GitHub Actions*'
+            ].join('\n');
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body
+            });

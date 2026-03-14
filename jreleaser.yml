@@ -1,0 +1,53 @@
+environment:
+  properties:
+    gitRootSearch: false
+
+project:
+  name: agents-common
+  versionPattern: SEMVER
+  description: SDK to create Langchain agents parsing files, calling cagent CLI, and more.
+  copyright: 2025 Charlie Mordant
+  authors:
+    - Charlie Mordant
+  license: Apache-2.0
+  inceptionYear: 2025
+  java:
+    groupId: net.osgiliath.ai
+    version: 21
+  links:
+    homepage: https://github.com/OsgiliathEnterprise/agents-common
+  snapshot:
+    pattern: .*-SNAPSHOT
+
+platform:
+  replacements:
+    aarch_64: aarch64
+
+release:
+  github:
+    enabled: true
+    draft: true
+    skipRelease: false
+    skipTag: true
+    overwrite: true
+    changelog:
+      formatted: ALWAYS
+      preset: conventional-commits
+      contributors:
+        format: '- {{contributorName}}{{#contributorUsernameAsLink}} ({{.}}){{/contributorUsernameAsLink}}'
+
+signing:
+  active: ALWAYS
+  armored: true
+  verify: false
+
+deploy:
+  maven:
+    mavenCentral:
+      sonatype:
+        active: RELEASE
+        url: https://central.sonatype.com/api/v1/publisher
+        stagingRepositories:
+          - build/staging-deploy
+        applyMavenCentralRules: true
+        verifyPom: true
