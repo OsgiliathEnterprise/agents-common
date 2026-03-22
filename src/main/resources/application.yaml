@@ -1,0 +1,54 @@
+# LangChain4j Local LLM Configuration (LM Studio)
+# LM Studio exposes an OpenAI-compatible API on localhost:1234
+langchain4j:
+  open-ai:
+    chat-model:
+      base-url: http://127.0.0.1:1234/v1
+      model-name: ibm/granite-4-h-tiny
+      log-requests: true
+      log-responses: true
+      timeout: 20s
+      api-key: sk-lm-4LjIq0cR:VIueSQJU4lohBUvy7LUu
+      supported-capabilities: response_format_json_schema
+      strict-json-schema: true
+    streaming-chat-model:
+      base-url: http://127.0.0.1:1234/v1
+      model-name: ibm/granite-4-h-tiny
+      log-requests: true
+      log-responses: true
+      timeout: 20s
+      api-key: sk-lm-4LjIq0cR:VIueSQJU4lohBUvy7LUu
+
+# Application Configuration
+spring:
+  application:
+    name: agents-common
+  main:
+    banner-mode: off
+    web-application-type: none
+logging:
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level %logger{36} - %msg%n"
+  exception-conversion-word: "%wEx"
+  # Log to stderr to avoid interfering with JSON-RPC on stdout
+  level:
+    root: INFO
+    net.osgiliath.erp.codeprompt: DEBUG
+
+# MCP Server Properties
+mcp:
+  server:
+    name: agents-common
+    version: 0.1.0
+    protocol-version: 2024-11-05
+    supported-protocol-versions:
+      - 2024-11-05
+codeprompt:
+  acp:
+    remote:
+      enabled: true
+      command: ${CODEPROMPT_CAGENT_COMMAND:/usr/local/bin/docker}
+      # Override when your cagent CLI uses a different option shape.
+      args: ${CODEPROMPT_CAGENT_ARGS:agent serve acp src/test/resources/dataset/acp-client/ping-agent.yaml}
+      cwd: ${CODEPROMPT_CAGENT_CWD:.}
+

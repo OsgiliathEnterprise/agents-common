@@ -1,5 +1,3 @@
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-
 plugins {
     alias(libs.plugins.springBoot)
     alias(libs.plugins.springDependencyManagement)
@@ -108,6 +106,8 @@ dependencies {
     implementation(libs.langchain4jHttpClientJdk)
     implementation(libs.langchain4jMcp)
     implementation(libs.langchain4jDocumentParserMarkdown)
+    implementation(libs.langchain4jMicrometerMetrics)
+    implementation(libs.langchain4jObservation)
 
     implementation(libs.langgraph4jCore)
     implementation(libs.langgraph4jLangchain4j)
@@ -118,6 +118,7 @@ dependencies {
     implementation(libs.commonmarkExtAutolink)
     implementation(libs.commonmarkExtGfmTables)
     implementation(libs.commonmarkExtIns)
+    implementation(libs.springBootStarterActuator)
 
     testImplementation(libs.springBootStarterTest) {
         exclude(group = "org.junit.platform")

@@ -6,9 +6,9 @@ kotlin = "2.2.20"
 jreleaser = "1.23.0"
 sonarqube = "7.2.3.7755"
 dependencycheck = "12.2.0"
-acp = "0.15.3"
+acp = "0.17.0"
 cucumberBom = "7.34.3"
-langgraph4jBom = "1.8.8"
+langgraph4jBom = "1.8.10"
 langchain4jBom = "1.12.2"
 kotlinxCoroutines = "1.9.0"
 junitJupiter = "5.14.2"
@@ -46,11 +46,14 @@ langchain4jHttpClientJdk = { module = "dev.langchain4j:langchain4j-http-client-j
 langchain4jMcp = { module = "dev.langchain4j:langchain4j-mcp" }
 langchain4jDocumentParserMarkdown = { module = "dev.langchain4j:langchain4j-document-parser-markdown" }
 langchain4jOpenAiOfficial = { module = "dev.langchain4j:langchain4j-open-ai-official" }
+langchain4jMicrometerMetrics = { module = "dev.langchain4j:langchain4j-micrometer-metrics" }
+langchain4jObservation = { module = "dev.langchain4j:langchain4j-observation" }
 
 langgraph4jCore = { module = "org.bsc.langgraph4j:langgraph4j-core" }
 langgraph4jLangchain4j = { module = "org.bsc.langgraph4j:langgraph4j-langchain4j" }
 
 springBootStarterTest = { module = "org.springframework.boot:spring-boot-starter-test" }
+springBootStarterActuator = { module = "org.springframework.boot:spring-boot-starter-actuator" }
 
 junitBom = { module = "org.junit:junit-bom", version.ref = "junitJupiter" }
 junitJupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junitJupiter" }

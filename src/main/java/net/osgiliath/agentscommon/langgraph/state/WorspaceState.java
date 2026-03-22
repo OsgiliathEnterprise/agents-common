@@ -16,7 +16,7 @@ public class WorspaceState<T> extends AcpState<T> {
     public static final Map<String, Channel<?>> SCHEMA = getSchema();
 
     private static Map<String, Channel<?>> getSchema() {
-        Map<String, Channel<?>> schema = Map.copyOf(AcpState.SCHEMA);
+        Map<String, Channel<?>> schema = new HashMap<>(AcpState.SCHEMA);
         schema.put(WORKSPACE_ROOT_CHANNEL, Channels.appender(ArrayList::new));
         return schema;
     }
