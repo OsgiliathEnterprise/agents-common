@@ -28,12 +28,10 @@ public class ProjectRootSteps {
 
     private static final Path DATASET_WORKSPACE_ROOT =
             Path.of("src/test/resources/dataset/workspace").toAbsolutePath().normalize();
-
+    private final List<Path> tempDirectories = new ArrayList<>();
     @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
     private ProjectRootResolverNode projectRootResolverNode;
-
-    private final List<Path> tempDirectories = new ArrayList<>();
     private String cwd;
     private boolean hasSessionContext;
     private Map<String, Object> nodeResult = Map.of();
@@ -72,9 +70,7 @@ public class ProjectRootSteps {
     @Given("a fresh workspace without git is provided as cwd")
     public void a_fresh_workspace_without_git_is_provided_as_cwd() throws IOException {
         hasSessionContext = true;
-        Path workspaceRoot = createTempDirectory("project-root-no-git-cwd-");
-        Files.createDirectories(workspaceRoot.resolve("src/test/resources"));
-        cwd = workspaceRoot.toString();
+        cwd = createTempDirectory("project-root-no-git-cwd-").toString();
         fileInContext = null;
         nodeResult = Map.of();
         nodeInvocationError = null;
@@ -102,8 +98,9 @@ public class ProjectRootSteps {
     }
 
     @When("the file is located in the same folder as a git repository")
-    public void the_file_is_located_in_the_same_folder_as_a_git_repository() {
+    public void the_file_is_located_in_the_same_folder_as_a_git_repository() throws IOException {
         cwd = DATASET_WORKSPACE_ROOT.toString();
+        Files.createDirectories(DATASET_WORKSPACE_ROOT.resolve(".git"));
         invokeProjectRootAgent();
     }
 
@@ -117,7 +114,8 @@ public class ProjectRootSteps {
     }
 
     @When("one of the parent folders contains a git repository")
-    public void one_of_the_parent_folders_contains_a_git_repository() {
+    public void one_of_the_parent_folders_contains_a_git_repository() throws IOException {
+        Files.createDirectories(DATASET_WORKSPACE_ROOT.resolve(".git"));
         cwd = DATASET_WORKSPACE_ROOT.resolve("net").toString();
         invokeProjectRootAgent();
     }
