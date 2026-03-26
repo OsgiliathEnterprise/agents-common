@@ -25,3 +25,23 @@ Feature: Project Root Resolution
 	When the cwd points to a wrong path that does not exist
 	Then the agent should log an error message
 	And the workspace URI should be Optional.empty
+
+  Scenario: SC6 - file in context, git repository found while traversing up to cwd
+	Given a cwd is provided as an ACP session attribute
+	And a file under the workspace with a git repository is provided in the context
+	When the project root agent is invoked
+	Then the project root should return that folder
+
+  Scenario: SC7 - file in context, no git repository found while traversing up to cwd
+	Given a fresh workspace without git is provided as cwd
+	And a file under that workspace is provided in the context
+	When the project root agent is invoked
+	Then the project root should return the cwd folder
+
+  Scenario: SC8 - file in context is disjoint from cwd
+	Given a cwd is provided as an ACP session attribute
+	And a file outside the workspace is provided in the context
+	When the project root agent is invoked
+	Then the agent should return an error message stating the paths are disjoint
+	And the workspace URI should be Optional.empty
+

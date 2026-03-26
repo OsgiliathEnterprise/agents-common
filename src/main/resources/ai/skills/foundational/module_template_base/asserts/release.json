@@ -1,0 +1,20 @@
+{
+  "domain": "release",
+  "checks": [
+    {
+      "id": "FND-002",
+      "title": "Release capability using JReleaser",
+      "severity": "critical",
+      "required_files": ["jreleaser.yml", "jreleaser.yaml"],
+      "signals": [
+        "plugins.*org.jreleaser",
+        "jreleaser\\s*\\{",
+        "release:",
+        "deploy:",
+        "mavenCentral",
+        "stagingRepositories"
+      ]
+    }
+  ]
+}
+

@@ -5,10 +5,12 @@ import io.cucumber.java.After;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
+import net.osgiliath.acplanggraphlangchainbridge.langgraph.message.ResourceLinkContent;
 import net.osgiliath.acplanggraphlangchainbridge.langgraph.state.AcpState;
 import net.osgiliath.acplanggraphlangchainbridge.langgraph.state.SessionContext;
 import net.osgiliath.agentscommon.langgraph.node.ProjectRootResolverNode;
 import net.osgiliath.agentscommon.langgraph.state.WorspaceState;
+import org.bsc.langgraph4j.prebuilt.MessagesState;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.IOException;
@@ -16,6 +18,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -36,6 +39,7 @@ public class ProjectRootSteps {
     private Map<String, Object> nodeResult = Map.of();
     private Throwable nodeInvocationError;
     private boolean nodeInvoked;
+    private ResourceLinkContent fileInContext;
 
     @After
     public void cleanupScenarioFiles() {
@@ -59,9 +63,40 @@ public class ProjectRootSteps {
     public void a_cwd_is_provided_as_an_acp_session_attribute() {
         hasSessionContext = true;
         cwd = DATASET_WORKSPACE_ROOT.toString();
+        fileInContext = null;
         nodeResult = Map.of();
         nodeInvocationError = null;
         nodeInvoked = false;
+    }
+
+    @Given("a fresh workspace without git is provided as cwd")
+    public void a_fresh_workspace_without_git_is_provided_as_cwd() throws IOException {
+        hasSessionContext = true;
+        cwd = createTempDirectory("project-root-no-git-cwd-").toString();
+        fileInContext = null;
+        nodeResult = Map.of();
+        nodeInvocationError = null;
+        nodeInvoked = false;
+    }
+
+    @Given("a file under the workspace with a git repository is provided in the context")
+    public void a_file_under_the_workspace_with_a_git_repository_is_provided_in_the_context() {
+        Path nestedFile = DATASET_WORKSPACE_ROOT.resolve("net/anestedfile");
+        fileInContext = new ResourceLinkContent("anestedfile", nestedFile.toUri(), null, null, null, null, null, null);
+    }
+
+    @Given("a file under that workspace is provided in the context")
+    public void a_file_under_that_workspace_is_provided_in_the_context() throws IOException {
+        Path tempCwd = Path.of(cwd);
+        Path tempFile = Files.createFile(tempCwd.resolve("testfile.txt"));
+        fileInContext = new ResourceLinkContent("testfile.txt", tempFile.toUri(), null, null, null, null, null, null);
+    }
+
+    @Given("a file outside the workspace is provided in the context")
+    public void a_file_outside_the_workspace_is_provided_in_the_context() throws IOException {
+        Path externalDir = createTempDirectory("external-workspace-");
+        Path externalFile = Files.createFile(externalDir.resolve("externalfile.txt"));
+        fileInContext = new ResourceLinkContent("externalfile.txt", externalFile.toUri(), null, null, null, null, null, null);
     }
 
     @When("the file is located in the same folder as a git repository")
@@ -113,6 +148,7 @@ public class ProjectRootSteps {
     public void no_cwd_is_provided_as_an_acp_session_attribute() {
         hasSessionContext = false;
         cwd = null;
+        fileInContext = null;
         nodeResult = Map.of();
         nodeInvocationError = null;
         nodeInvoked = false;
@@ -137,6 +173,22 @@ public class ProjectRootSteps {
         assertThat(nodeResult).doesNotContainKey(WorspaceState.WORKSPACE_ROOT_CHANNEL);
     }
 
+    @Then("the project root should return the cwd folder")
+    public void the_project_root_should_return_the_cwd_folder() {
+        assertThat(nodeInvoked).isTrue();
+        assertThat(nodeInvocationError).isNull();
+        assertThat(nodeResult).containsKey(WorspaceState.WORKSPACE_ROOT_CHANNEL);
+        assertThat(nodeResult.get(WorspaceState.WORKSPACE_ROOT_CHANNEL))
+                .isEqualTo(Path.of(cwd).toUri());
+    }
+
+    @Then("the agent should return an error message stating the paths are disjoint")
+    public void the_agent_should_return_an_error_message_stating_the_paths_are_disjoint() {
+        assertThat(nodeInvoked).isTrue();
+        assertThat(nodeInvocationError).isNull();
+        assertThat(nodeResult).containsKey(MessagesState.MESSAGES_STATE);
+    }
+
     private Path createTempDirectory(String prefix) throws IOException {
         Path tempDir = Files.createTempDirectory(prefix);
         tempDirectories.add(tempDir);
@@ -144,9 +196,13 @@ public class ProjectRootSteps {
     }
 
     private void invokeProjectRootAgent() {
-        Map<String, Object> initData = hasSessionContext
-                ? Map.of(AcpState.SESSION_CONTEXT, SessionContext.of("session-under-test", cwd, Map.of()))
-                : Map.of();
+        Map<String, Object> initData = new HashMap<>();
+        if (hasSessionContext) {
+            initData.put(AcpState.SESSION_CONTEXT, SessionContext.of("session-under-test", cwd, Map.of()));
+        }
+        if (fileInContext != null) {
+            initData.put(AcpState.ATTACHMENTS_META, List.of(fileInContext));
+        }
         WorspaceState<ChatMessage> state = new WorspaceState<>(initData);
         try {
             nodeResult = projectRootResolverNode.apply(state);

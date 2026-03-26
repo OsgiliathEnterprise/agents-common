@@ -1,0 +1,13 @@
+package {{CUCUMBER_PACKAGE}};
+
+import io.cucumber.spring.CucumberContextConfiguration;
+import org.springframework.boot.test.context.SpringBootTest;
+
+/**
+ * Spring Boot test context bootstrap for Cucumber scenarios.
+ */
+@CucumberContextConfiguration
+@SpringBootTest(classes = {{SPRING_BOOT_TEST_APPLICATION_CLASS}}.class)
+public class CucumberSpringConfiguration {
+}
+

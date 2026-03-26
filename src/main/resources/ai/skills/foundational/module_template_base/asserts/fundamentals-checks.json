@@ -1,0 +1,30 @@
+{
+  "skill": "project-root-fundamentals-assessor",
+  "version": "1.3.0",
+  "placeholder_format": "{{VARIABLE_NAME}}",
+  "template_files": [
+    "templates/build.gradle.kts.template",
+    "templates/settings.gradle.kts.template",
+    "templates/gradle/libs.versions.toml.template",
+    "templates/jreleaser.yml.template",
+    "templates/src/test/java/cucumber/CucumberTestRunner.java.template",
+    "templates/src/test/java/cucumber/CucumberSpringConfiguration.java.template"
+  ],
+  "asset_files": [
+    "assets/cucumber.properties",
+    "assets/src/test/resources/cucumber.properties",
+    "assets/src/test/resources/features/sample.feature",
+    "assets/src/test/resources/dataset/config.json",
+    "assets/.github/dependabot.yml",
+    "assets/.github/workflows/ci.yml",
+    "assets/.github/workflows/release.yml",
+    "assets/.github/workflows/release-draft.yml"
+  ],
+  "domain_files": [
+    "asserts/build.json",
+    "asserts/tests.json",
+    "asserts/ci.json",
+    "asserts/release.json"
+  ]
+}
+

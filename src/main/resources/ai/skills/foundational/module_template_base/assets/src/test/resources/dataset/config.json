@@ -1,0 +1,9 @@
+{
+  "application": "ACP Test Suite",
+  "version": "1.0.0",
+  "testConfig": {
+    "enableAttachments": true,
+    "maxFileSize": "10MB"
+  }
+}
+

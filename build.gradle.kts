@@ -21,7 +21,7 @@ group = "net.osgiliath.ai"
 description = "Bridge module between ACP and LangGraph/LangChain"
 version = (findProperty("releaseVersion") as String?) ?: "1.0-SNAPSHOT"
 tasks.wrapper {
-    gradleVersion = "9.4.0"
+    gradleVersion = "9.4.1"
     distributionType = Wrapper.DistributionType.BIN
 }
 
@@ -69,6 +69,10 @@ java {
     }
     withSourcesJar()
     withJavadocJar()
+}
+// Configure Kotlin to use the same Java toolchain
+kotlin {
+    jvmToolchain(21)
 }
 
 configurations.all {

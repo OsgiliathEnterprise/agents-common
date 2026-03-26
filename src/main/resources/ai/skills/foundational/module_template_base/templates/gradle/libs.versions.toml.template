@@ -1,0 +1,23 @@
+[versions]
+springBoot = "{{SPRING_BOOT_VERSION}}"
+springDependencyManagement = "{{SPRING_DEPENDENCY_MANAGEMENT_VERSION}}"
+jreleaser = "{{JRELEASER_VERSION}}"
+ideaExt = "1.1.9"
+sonarqube = "{{SONARQUBE_VERSION}}"
+cucumberBom = "{{CUCUMBER_VERSION}}"
+jacoco = "{{JACOCO_VERSION}}"
+
+[plugins]
+springBoot = { id = "org.springframework.boot", version.ref = "springBoot" }
+springDependencyManagement = { id = "io.spring.dependency-management", version.ref = "springDependencyManagement" }
+jreleaser = { id = "org.jreleaser", version.ref = "jreleaser" }
+sonarqube = { id = "org.sonarqube", version.ref = "sonarqube" }
+ideaExt = { id = "org.jetbrains.gradle.plugin.idea-ext", version.ref = "ideaExt" }
+
+[libraries]
+cucumberBom = { module = "io.cucumber:cucumber-bom", version.ref = "cucumberBom" }
+cucumberJava = { module = "io.cucumber:cucumber-java" }
+cucumberJunitPlatformEngine = { module = "io.cucumber:cucumber-junit-platform-engine" }
+springBootStarterActuator = { module = "org.springframework.boot:spring-boot-starter-actuator" }
+springBootStarterTest = { module = "org.springframework.boot:spring-boot-starter-test" }
+

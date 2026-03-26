@@ -1,0 +1,102 @@
+plugins {
+    `java-library`
+    `maven-publish`
+    jacoco
+    id("idea")
+    alias(libs.plugins.ideaExt)
+    alias(libs.plugins.jreleaser)
+    alias(libs.plugins.sonarqube)
+    alias(libs.plugins.dependencycheck)
+    alias(libs.plugins.springDependencyManagement)
+    wrapper
+}
+
+group = "{{GROUP_ID}}"
+version = "{{PROJECT_VERSION}}"
+
+description = "{{PROJECT_DESCRIPTION}}"
+
+tasks.wrapper {
+    gradleVersion = "9.4.1"
+    distributionType = Wrapper.DistributionType.BIN
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+    withSourcesJar()
+    withJavadocJar()
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation(platform(libs.cucumberBom))
+    implementation(libs.springBootStarterActuator)
+
+    testImplementation(libs.springBootStarterTest)
+    testImplementation(libs.cucumberJava)
+    testImplementation(libs.cucumberJunitPlatformEngine)
+}
+
+jacoco {
+    toolVersion = libs.versions.jacoco.get()
+}
+
+tasks.test {
+    useJUnitPlatform()
+}
+
+tasks.jacocoTestReport {
+    dependsOn(tasks.test)
+}
+
+publishing {
+    publications {
+        create<MavenPublication>("mavenJava") {
+            from(components["java"])
+            pom {
+                name.set("{{PROJECT_NAME}}")
+                description.set("{{PROJECT_DESCRIPTION}}")
+                url.set("{{PROJECT_URL}}")
+                licenses {
+                    license {
+                        name.set("Apache License, Version 2.0")
+                        url.set("https://www.apache.org/licenses/LICENSE-2.0.txt")
+                    }
+                }
+                developers {
+                    developer {
+                        id.set("{{DEVELOPER_ID}}")
+                        name.set("{{DEVELOPER_NAME}}")
+                    }
+                }
+                scm {
+                    url.set("{{SCM_URL}}")
+                }
+            }
+        }
+    }
+    repositories {
+        maven {
+            name = "staging"
+            url = uri(layout.buildDirectory.dir("staging-deploy"))
+        }
+    }
+}
+
+sonar {
+    properties {
+        property("sonar.projectKey", "{{SONAR_PROJECT_KEY}}")
+        property("sonar.organization", "{{SONAR_ORGANIZATION}}")
+        property("sonar.host.url", "{{SONAR_HOST_URL}}")
+    }
+}
+
+jreleaser {
+    configFile.set(file("jreleaser.yml"))
+}
+
