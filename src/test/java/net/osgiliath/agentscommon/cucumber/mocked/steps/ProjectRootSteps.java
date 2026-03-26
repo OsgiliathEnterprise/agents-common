@@ -72,7 +72,9 @@ public class ProjectRootSteps {
     @Given("a fresh workspace without git is provided as cwd")
     public void a_fresh_workspace_without_git_is_provided_as_cwd() throws IOException {
         hasSessionContext = true;
-        cwd = createTempDirectory("project-root-no-git-cwd-").toString();
+        Path workspaceRoot = createTempDirectory("project-root-no-git-cwd-");
+        Files.createDirectories(workspaceRoot.resolve("src/test/resources"));
+        cwd = workspaceRoot.toString();
         fileInContext = null;
         nodeResult = Map.of();
         nodeInvocationError = null;
