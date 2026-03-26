@@ -1,21 +1,21 @@
 # Agents Common
+
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=OsgiliathEnterprise_agentscommon&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=OsgiliathEnterprise_agentscommon)
 ![Maven Central Version](https://img.shields.io/maven-central/v/net.osgiliath.ai/agents-common)
 
 In progress a library containing common agents and skills, valid in any context.
 
-
 ## Tech Stack
 
-| Technology | Version | Purpose |
-|---|---|---|
-| **Java** | 21 | Primary SDK implementation |
-| **Kotlin** | 2.2.20 | ACP client interoperability |
-| **Spring Boot** | 3.4.2 | Dependency injection and bootstrapping |
-| **JetBrains ACP SDK** (`com.agentclientprotocol:acp`) | 0.15.3 | Agent Client Protocol support |
-| **LangChain4j** | 1.11.0 | LLM abstraction and integrations |
-| **LangGraph4j** | 1.8.3 | Graph orchestration primitives |
-| **CommonMark** | 0.27.1 | Markdown parsing/rendering |
+| Technology                                            | Version | Purpose                                |
+|-------------------------------------------------------|---------|----------------------------------------|
+| **Java**                                              | 21      | Primary SDK implementation             |
+| **Kotlin**                                            | 2.2.20  | ACP client interoperability            |
+| **Spring Boot**                                       | 3.4.2   | Dependency injection and bootstrapping |
+| **JetBrains ACP SDK** (`com.agentclientprotocol:acp`) | 0.15.3  | Agent Client Protocol support          |
+| **LangChain4j**                                       | 1.11.0  | LLM abstraction and integrations       |
+| **LangGraph4j**                                       | 1.8.3   | Graph orchestration primitives         |
+| **CommonMark**                                        | 0.27.1  | Markdown parsing/rendering             |
 
 ## Useful Commands
 
@@ -127,4 +127,5 @@ export BRIDGE_VERSION="1.0-SNAPSHOT"
 
 ## Notes
 
-The SDK is designed to be consumed as a library module; use it from your own Spring Boot agent application and wire your graph/prompt logic around the provided parser and ACP client abstractions.
+The SDK is designed to be consumed as a library module; use it from your own Spring Boot agent application and wire your
+graph/prompt logic around the provided parser and ACP client abstractions.
