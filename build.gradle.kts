@@ -94,7 +94,7 @@ dependencies {
 
     val bridgeVersion = (findProperty("bridgeVersion") as String?) ?: System.getenv("BRIDGE_VERSION") ?: "1.0-SNAPSHOT"
     implementation("net.osgiliath.ai:acp-langraph-langchain-bridge:$bridgeVersion")
-    val sdkVersion = (findProperty("sdkVersion") as String?) ?: System.getenv("SDK_VERSION") ?: "1.0-SNAPSHOT"
+    val sdkVersion = (findProperty("sdkVersion") as String?) ?: System.getenv("AGENT_SDK_VERSION") ?: "1.0-SNAPSHOT"
     implementation("net.osgiliath.ai:agent-sdk:$sdkVersion")
 
     implementation(libs.acp)
