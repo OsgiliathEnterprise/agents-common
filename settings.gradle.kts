@@ -27,3 +27,11 @@ if (bridgeDir.exists()) {
     }
 }
 
+val agentSdk = file("../agent-sdk")
+if (agentSdk.exists()) {
+    includeBuild(agentSdk) {
+        dependencySubstitution {
+            substitute(module("net.osgiliath.ai:agent-sdk")).using(project(":"))
+        }
+    }
+}

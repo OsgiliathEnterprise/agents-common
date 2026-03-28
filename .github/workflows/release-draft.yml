@@ -11,7 +11,7 @@ concurrency:
 
 env:
   BRIDGE_VERSION: "1.0.22"
-  SDK_VERSION: "0.0.8"
+  AGENT_SDK_VERSION: "0.0.8"
   SPRING_PROFILES_ACTIVE: github
   MODEL_TOKEN: ${{ secrets.MODEL_TOKEN }}
 
