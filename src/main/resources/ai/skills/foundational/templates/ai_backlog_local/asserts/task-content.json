@@ -1,0 +1,48 @@
+{
+  "domain": "task-content",
+  "checks": [
+    {
+      "id": "BKL-004",
+      "title": "Frontmatter present in all phase files",
+      "severity": "critical",
+      "signals": [
+        "^---",
+        "id:\\s*\\S+-\\S+",
+        "created:\\s*\\d{4}-\\d{2}-\\d{2}",
+        "updated:\\s*\\d{4}-\\d{2}-\\d{2}",
+        "status:\\s*(TODO|DOING|DONE)",
+        "links:\\s*\\[",
+        "business-value:\\s*\\d+",
+        "requirement-clarity:\\s*\\d+",
+        "severity:\\s*(critical|major|minor)",
+        "effort:\\s*\\d+"
+      ]
+    },
+    {
+      "id": "BKL-005",
+      "title": "Section structure respected",
+      "severity": "major",
+      "signals": [
+        "^#\\s+.+",
+        "^##\\s+.+"
+      ]
+    },
+    {
+      "id": "BKL-006",
+      "title": "Status values valid",
+      "severity": "minor",
+      "signals": [
+        "status:\\s*(TODO|DOING|DONE)"
+      ]
+    },
+    {
+      "id": "BKL-007",
+      "title": "Effort uses Fibonacci scale",
+      "severity": "minor",
+      "signals": [
+        "effort:\\s*(1|2|3|5|8|13|21)"
+      ]
+    }
+  ]
+}
+

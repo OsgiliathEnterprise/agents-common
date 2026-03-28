@@ -1,0 +1,28 @@
+{
+  "skill": "ai-backlog-local-lifecycle-manager",
+  "version": "1.0.0",
+  "placeholder_format": "{{VARIABLE_NAME}}",
+  "template_files": [
+    "templates/ai/tasks/000-Task_Template/1-goal.md.template",
+    "templates/ai/tasks/000-Task_Template/2-design.md.template",
+    "templates/ai/tasks/000-Task_Template/3-scenarii.md.template",
+    "templates/ai/tasks/000-Task_Template/4-tests.md.template",
+    "templates/ai/tasks/000-Task_Template/5-implementation.md.template",
+    "templates/ai/tasks/000-Task_Template/6-refactor.md.template",
+    "templates/ai/tasks/000-Task_Template/7-automation.md.template",
+    "templates/ai/tasks/000-Task_Template/8-retrospective.md.template",
+    "templates/ai/tasks/000-Task_Template/9-skills.md.template",
+    "templates/ai/tasks/000-Task_Template/10-agents.md.template",
+    "templates/ai/tasks/000-Task_Template/11-doc_promotion.md.template",
+    "templates/ai/tasks/000-Task_Template/12-doc_explanation.md.template",
+    "templates/ai/tasks/000-Task_Template/13-doc_reference.md.template",
+    "templates/ai/tasks/000-Task_Template/14-doc_howto.md.template",
+    "templates/ai/tasks/000-Task_Template/15-doc_tutorial.md.template"
+  ],
+  "asset_files": [],
+  "domain_files": [
+    "asserts/structure.json",
+    "asserts/task-content.json"
+  ]
+}
+

@@ -70,10 +70,6 @@ java {
     withSourcesJar()
     withJavadocJar()
 }
-// Configure Kotlin to use the same Java toolchain
-kotlin {
-    jvmToolchain(21)
-}
 
 configurations.all {
     resolutionStrategy {

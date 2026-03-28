@@ -1,0 +1,44 @@
+{
+  "domain": "structure",
+  "checks": [
+    {
+      "id": "BKL-001",
+      "title": "AI backlog root folder exists",
+      "severity": "critical",
+      "required_paths": ["ai/"],
+      "signals": []
+    },
+    {
+      "id": "BKL-002",
+      "title": "Tasks subfolder exists",
+      "severity": "major",
+      "required_paths": ["ai/tasks/"],
+      "signals": []
+    },
+    {
+      "id": "BKL-003",
+      "title": "Task template folder present with all phase files",
+      "severity": "critical",
+      "required_paths": ["ai/tasks/000-Task_Template/"],
+      "required_files": [
+        "ai/tasks/000-Task_Template/1-goal.md",
+        "ai/tasks/000-Task_Template/2-design.md",
+        "ai/tasks/000-Task_Template/3-scenarii.md",
+        "ai/tasks/000-Task_Template/4-tests.md",
+        "ai/tasks/000-Task_Template/5-implementation.md",
+        "ai/tasks/000-Task_Template/6-refactor.md",
+        "ai/tasks/000-Task_Template/7-automation.md",
+        "ai/tasks/000-Task_Template/8-retrospective.md",
+        "ai/tasks/000-Task_Template/9-skills.md",
+        "ai/tasks/000-Task_Template/10-agents.md",
+        "ai/tasks/000-Task_Template/11-doc_promotion.md",
+        "ai/tasks/000-Task_Template/12-doc_explanation.md",
+        "ai/tasks/000-Task_Template/13-doc_reference.md",
+        "ai/tasks/000-Task_Template/14-doc_howto.md",
+        "ai/tasks/000-Task_Template/15-doc_tutorial.md"
+      ],
+      "signals": []
+    }
+  ]
+}
+
