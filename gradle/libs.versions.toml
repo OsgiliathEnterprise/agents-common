@@ -1,21 +1,21 @@
 [versions]
-springBoot = "3.4.2"
+springBoot = "3.5.11"
 springDependencyManagement = "1.1.6"
-ideaExt = "1.1.9"
+ideaExt = "1.4.1"
 kotlin = "2.2.20"
 jreleaser = "1.23.0"
 sonarqube = "7.2.3.7755"
+jacoco = "0.8.12"
 dependencycheck = "12.2.0"
 acp = "0.17.0"
+commonmark = "0.27.1"
 cucumberBom = "7.34.3"
 langgraph4jBom = "1.8.10"
 langchain4jBom = "1.12.2"
 kotlinxCoroutines = "1.9.0"
+awaitility = "4.3.0"
 junitJupiter = "5.14.2"
 junitPlatform = "1.14.2"
-awaitility = "4.3.0"
-commonmark = "0.27.1"
-jacoco = "0.8.12"
 
 [plugins]
 springBoot = { id = "org.springframework.boot", version.ref = "springBoot" }
@@ -30,7 +30,6 @@ dependencycheck = { id = "org.owasp.dependencycheck", version.ref = "dependencyc
 [libraries]
 acp = { module = "com.agentclientprotocol:acp", version.ref = "acp" }
 
-cucumberBom = { module = "io.cucumber:cucumber-bom", version.ref = "cucumberBom" }
 langgraph4jBom = { module = "org.bsc.langgraph4j:langgraph4j-bom", version.ref = "langgraph4jBom" }
 langchain4jBom = { module = "dev.langchain4j:langchain4j-bom", version.ref = "langchain4jBom" }
 
@@ -55,6 +54,19 @@ langgraph4jLangchain4j = { module = "org.bsc.langgraph4j:langgraph4j-langchain4j
 springBootStarterTest = { module = "org.springframework.boot:spring-boot-starter-test" }
 springBootStarterActuator = { module = "org.springframework.boot:spring-boot-starter-actuator" }
 
+commonmark = { module = "org.commonmark:commonmark", version.ref = "commonmark" }
+commonmarkExtTaskListItems = { module = "org.commonmark:commonmark-ext-task-list-items", version.ref = "commonmark" }
+commonmarkExtYamlFrontMatter = { module = "org.commonmark:commonmark-ext-yaml-front-matter", version.ref = "commonmark" }
+commonmarkExtAutolink = { module = "org.commonmark:commonmark-ext-autolink", version.ref = "commonmark" }
+commonmarkExtGfmTables = { module = "org.commonmark:commonmark-ext-gfm-tables", version.ref = "commonmark" }
+commonmarkExtIns = { module = "org.commonmark:commonmark-ext-ins", version.ref = "commonmark" }
+
+cucumberBom = { module = "io.cucumber:cucumber-bom", version.ref = "cucumberBom" }
+cucumberCore = { module = "io.cucumber:cucumber-core" }
+cucumberJava = { module = "io.cucumber:cucumber-java" }
+cucumberSpring = { module = "io.cucumber:cucumber-spring" }
+cucumberJunitPlatformEngine = { module = "io.cucumber:cucumber-junit-platform-engine" }
+
 junitBom = { module = "org.junit:junit-bom", version.ref = "junitJupiter" }
 junitJupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junitJupiter" }
 junitJupiterApi = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junitJupiter" }
@@ -62,15 +74,3 @@ junitPlatformLauncher = { module = "org.junit.platform:junit-platform-launcher",
 junitPlatformSuite = { module = "org.junit.platform:junit-platform-suite", version.ref = "junitPlatform" }
 
 awaitility = { module = "org.awaitility:awaitility", version.ref = "awaitility" }
-
-cucumberCore = { module = "io.cucumber:cucumber-core" }
-cucumberJava = { module = "io.cucumber:cucumber-java" }
-cucumberSpring = { module = "io.cucumber:cucumber-spring" }
-cucumberJunitPlatformEngine = { module = "io.cucumber:cucumber-junit-platform-engine" }
-
-commonmark = { module = "org.commonmark:commonmark", version.ref = "commonmark" }
-commonmarkExtTaskListItems = { module = "org.commonmark:commonmark-ext-task-list-items", version.ref = "commonmark" }
-commonmarkExtYamlFrontMatter = { module = "org.commonmark:commonmark-ext-yaml-front-matter", version.ref = "commonmark" }
-commonmarkExtAutolink = { module = "org.commonmark:commonmark-ext-autolink", version.ref = "commonmark" }
-commonmarkExtGfmTables = { module = "org.commonmark:commonmark-ext-gfm-tables", version.ref = "commonmark" }
-commonmarkExtIns = { module = "org.commonmark:commonmark-ext-ins", version.ref = "commonmark" }
