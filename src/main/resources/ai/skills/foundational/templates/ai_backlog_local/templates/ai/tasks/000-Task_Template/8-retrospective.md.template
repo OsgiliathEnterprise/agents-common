@@ -4,6 +4,8 @@ created: {{CREATED_DATETIME}}
 updated: {{UPDATED_DATETIME}}
 status: TODO
 links: []
+reporter: {{REPORTER}}
+assignees: [{{ASSIGNEES}}]
 business-value: {{BUSINESS_VALUE}}
 requirement-clarity: {{REQUIREMENT_CLARITY}}
 severity: {{SEVERITY}}

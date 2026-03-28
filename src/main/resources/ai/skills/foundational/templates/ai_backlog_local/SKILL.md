@@ -46,6 +46,8 @@ created: {{CREATED_DATETIME}}
 updated: {{UPDATED_DATETIME}}
 status: TODO|DOING|DONE
 links: []
+reporter: {{REPORTER}}
+assignees: [{{ASSIGNEES}}]
 business-value: {{BUSINESS_VALUE}}
 requirement-clarity: {{REQUIREMENT_CLARITY}}
 severity: {{SEVERITY}}
@@ -60,6 +62,8 @@ effort: {{EFFORT}}
 | `updated`             | ISO-8601 local datetime                   |
 | `status`              | Enum: `TODO`, `DOING`, `DONE`             |
 | `links`               | List of related task IDs                  |
+| `reporter`            | Persona identifier in kebab-case          |
+| `assignees`           | YAML inline list of agent IDs or `HumanCaller` |
 | `business-value`      | Integer 1–10                              |
 | `requirement-clarity` | Integer 1–10                              |
 | `severity`            | Enum: `critical`, `major`, `minor`        |
@@ -112,6 +116,8 @@ Before generating a new task folder, ask:
 - Requirement clarity 1–10 (`REQUIREMENT_CLARITY`)
 - Severity (`SEVERITY`): `critical`, `major`, or `minor`
 - Effort Fibonacci 1–21 (`EFFORT`)
+- Reporter persona (`REPORTER`) in kebab-case, e.g. `backend-architect`
+- Assignees (`ASSIGNEES`) as YAML inline list values, e.g. `agent-alpha,HumanCaller`
 
 ## Checks Organization
 
@@ -136,7 +142,7 @@ Pass when: `ai/tasks/000-Task_Template/` exists and contains all 15 phase files.
 
 ### BKL-004: Frontmatter present in all phase files
 
-Pass when: every `.md` file in a task folder starts with a valid YAML frontmatter block containing all required attributes.
+Pass when: every `.md` file in a task folder starts with a valid YAML frontmatter block containing all required attributes, including `reporter` in kebab-case and `assignees` as an inline YAML list of agent IDs or `HumanCaller`.
 
 ### BKL-005: Section structure respected
 
@@ -224,7 +230,7 @@ For each failed check, provide:
 
 Use this flow:
 
-1. Ask for required rendering inputs (`TASK_TYPE`, `TASK_ID`, `TASK_NAME`, `BUSINESS_VALUE`, `REQUIREMENT_CLARITY`, `SEVERITY`, `EFFORT`).
+1. Ask for required rendering inputs (`TASK_TYPE`, `TASK_ID`, `TASK_NAME`, `BUSINESS_VALUE`, `REQUIREMENT_CLARITY`, `SEVERITY`, `EFFORT`, `REPORTER`, `ASSIGNEES`).
 2. Copy `000-Task_Template/` to `ai/tasks/{{TASK_ID}}-{{TASK_NAME}}/`.
 3. Replace `{{...}}` variables in all phase files.
 4. Load `asserts/backlog-checks.json`, then evaluate each domain file and all checks from `BKL-001` to `BKL-007` with file-backed evidence.

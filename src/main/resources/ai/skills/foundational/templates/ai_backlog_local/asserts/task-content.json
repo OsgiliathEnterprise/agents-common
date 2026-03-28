@@ -12,6 +12,8 @@
         "updated:\\s*\\d{4}-\\d{2}-\\d{2}",
         "status:\\s*(TODO|DOING|DONE)",
         "links:\\s*\\[",
+        "reporter:\\s*[a-z0-9]+(?:-[a-z0-9]+)*",
+        "assignees:\\s*\\[(?:\\s*(?:[A-Za-z][A-Za-z0-9_-]*|HumanCaller)\\s*)(?:,\\s*(?:[A-Za-z][A-Za-z0-9_-]*|HumanCaller)\\s*)*\\]",
         "business-value:\\s*\\d+",
         "requirement-clarity:\\s*\\d+",
         "severity:\\s*(critical|major|minor)",
