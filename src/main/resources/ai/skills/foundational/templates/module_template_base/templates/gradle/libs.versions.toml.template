@@ -2,7 +2,7 @@
 springBoot = "{{SPRING_BOOT_VERSION}}"
 springDependencyManagement = "{{SPRING_DEPENDENCY_MANAGEMENT_VERSION}}"
 jreleaser = "{{JRELEASER_VERSION}}"
-ideaExt = "1.1.9"
+ideaExt = "1.4.1"
 sonarqube = "{{SONARQUBE_VERSION}}"
 cucumberBom = "{{CUCUMBER_VERSION}}"
 jacoco = "{{JACOCO_VERSION}}"

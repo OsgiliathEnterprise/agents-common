@@ -44,6 +44,9 @@ mcp:
     supported-protocol-versions:
       - 2024-11-05
 codeprompt:
+  agent:
+    skill-folders:
+      - classpath:ai/skills/foundational/templates/
   acp:
     remote:
       enabled: true

@@ -1,44 +1,46 @@
 ---
 name: module_template_base
 description: You are an assistant ensuring the project layout is respected and setup properly with  Gradle setup, BDD tests, and proper CICD
+tools: [ "list_files_in_folder", "get_file_text_by_path", "create_new_file_with_text", "execute_terminal_command" ]
 ---
 
 # Skill: Project Root Fundamentals Assessor
 
 ## Quick Reference
 
-| Need                                  | Use                                   |
-|---------------------------------------|---------------------------------------|
-| Check definitions and detection hints | `asserts/fundamentals-checks.json`     |
-| Root Gradle scaffold template         | `templates/build.gradle.kts.template` |
-| Root JReleaser scaffold template      | `templates/jreleaser.yml.template`    |
-| Static Dependabot config asset        | `assets/.github/dependabot.yml`       |
-| Static CI workflow asset              | `assets/.github/workflows/ci.yml`     |
-| Static release workflow asset         | `assets/.github/workflows/release.yml`|
-| Static draft workflow asset           | `assets/.github/workflows/release-draft.yml` |
-| Non-templated Cucumber runtime asset  | `assets/cucumber.properties`          |
-| Cucumber runner template              | `templates/src/test/java/cucumber/CucumberTestRunner.java.template` |
+| Need                                  | Use                                                                          |
+|---------------------------------------|------------------------------------------------------------------------------|
+| Check definitions and detection hints | `asserts/fundamentals-checks.json`                                           |
+| Root Gradle scaffold template         | `templates/build.gradle.kts.template`                                        |
+| Root JReleaser scaffold template      | `templates/jreleaser.yml.template`                                           |
+| Static Dependabot config asset        | `assets/.github/dependabot.yml`                                              |
+| Static CI workflow asset              | `assets/.github/workflows/ci.yml`                                            |
+| Static release workflow asset         | `assets/.github/workflows/release.yml`                                       |
+| Static draft workflow asset           | `assets/.github/workflows/release-draft.yml`                                 |
+| Non-templated Cucumber runtime asset  | `assets/cucumber.properties`                                                 |
+| Cucumber runner template              | `templates/src/test/java/cucumber/CucumberTestRunner.java.template`          |
 | Cucumber Spring template              | `templates/src/test/java/cucumber/CucumberSpringConfiguration.java.template` |
-| Sample feature asset                  | `assets/src/test/resources/features/sample.feature` |
-| Sample dataset asset                  | `assets/src/test/resources/dataset/config.json` |
-| Placeholder variable examples         | `templates/variables.example.env`     |
+| Sample feature asset                  | `assets/src/test/resources/features/sample.feature`                          |
+| Sample dataset asset                  | `assets/src/test/resources/dataset/config.json`                              |
+| Placeholder variable examples         | `templates/variables.example.env`                                            |
 
 ## Template and Asset Semantics
 
 - Templates are file scaffolds with placeholders to substitute (format: `{{VARIABLE_NAME}}`).
 - Assets are copied as-is, with no variable substitution.
 - Use templates for project-specific files like `build.gradle.kts` and `jreleaser.yml`.
-- Use assets for static support files like `cucumber.properties`, `.github/dependabot.yml`, and `.github/workflows/*.yml`.
+- Use assets for static support files like `cucumber.properties`, `.github/dependabot.yml`, and
+  `.github/workflows/*.yml`.
 - Cucumber starter scaffolding is always included in this module template.
 
 ## Checks Organization
 
 - Canonical check metadata is defined in `asserts/fundamentals-checks.json`.
 - Checks are split by domain under `asserts/`:
-  - `asserts/build.json`
-  - `asserts/tests.json`
-  - `asserts/ci.json`
-  - `asserts/release.json`
+    - `asserts/build.json`
+    - `asserts/tests.json`
+    - `asserts/ci.json`
+    - `asserts/release.json`
 - Keep check IDs and severities stable across files.
 
 ## Required Inputs Before Rendering
@@ -77,8 +79,9 @@ The skill should verify the existence and content of these root files:
 
 Pass when all are true:
 
-- Root build file exists (`build.gradle` or `build.gradle.kts`).
-- Java support is configured via at least one valid signal:
+- Root build file exists (`build.gradle` or `build.gradle.kts`). Verification: use `list_files_in_folder` on project
+  root.
+- Java support is configured via at least one valid signal (found by reading the file with `get_file_text_by_path`):
     - Java plugin usage (`java`, `java-library`, or Spring Boot with Java toolchain/source compatibility).
     - Java toolchain/source/target compatibility explicitly set.
 - There is a standard compile path for Java (for example presence of Java plugin tasks or Java source sets implied by
@@ -262,21 +265,27 @@ For each failed check, provide:
 - Release workflow asset: [assets/.github/workflows/release.yml](assets/.github/workflows/release.yml)
 - Release draft workflow asset: [assets/.github/workflows/release-draft.yml](assets/.github/workflows/release-draft.yml)
 - Static cucumber asset: [assets/cucumber.properties](assets/cucumber.properties)
-- Cucumber properties asset: [assets/src/test/resources/cucumber.properties](assets/src/test/resources/cucumber.properties)
-- Cucumber runner template: [templates/src/test/java/cucumber/CucumberTestRunner.java.template](templates/src/test/java/cucumber/CucumberTestRunner.java.template)
-- Cucumber Spring template: [templates/src/test/java/cucumber/CucumberSpringConfiguration.java.template](templates/src/test/java/cucumber/CucumberSpringConfiguration.java.template)
-- Sample feature asset: [assets/src/test/resources/features/sample.feature](assets/src/test/resources/features/sample.feature)
+- Cucumber properties
+  asset: [assets/src/test/resources/cucumber.properties](assets/src/test/resources/cucumber.properties)
+- Cucumber runner
+  template: [templates/src/test/java/cucumber/CucumberTestRunner.java.template](templates/src/test/java/cucumber/CucumberTestRunner.java.template)
+- Cucumber Spring
+  template: [templates/src/test/java/cucumber/CucumberSpringConfiguration.java.template](templates/src/test/java/cucumber/CucumberSpringConfiguration.java.template)
+- Sample feature
+  asset: [assets/src/test/resources/features/sample.feature](assets/src/test/resources/features/sample.feature)
 - Sample dataset asset: [assets/src/test/resources/dataset/config.json](assets/src/test/resources/dataset/config.json)
 - Placeholder examples: [templates/variables.example.env](templates/variables.example.env)
 
 Use this flow:
 
 1. Ask for required rendering inputs, including Cucumber package and Spring test application class values.
-2. Generate scaffold files from templates by replacing `{{...}}` variables.
-3. Copy static assets as-is.
-4. Load `asserts/fundamentals-checks.json`, then evaluate each domain file and all checks from `FND-001` to `FND-006.4` with file-backed evidence.
+2. Generate scaffold files from templates by replacing `{{...}}` variables using `create_new_file_with_text`.
+3. Copy static assets as-is using `create_new_file_with_text`.
+4. Load `asserts/fundamentals-checks.json` using `get_file_text_by_path`, then evaluate each domain file and all checks
+   from `FND-001` to `FND-006.4`
+   with file-backed evidence.
 
-Validation command examples:
+Validation command examples (use `execute_terminal_command`):
 
 ```bash
 ./gradlew clean assemble test jacocoTestReport --stacktrace
