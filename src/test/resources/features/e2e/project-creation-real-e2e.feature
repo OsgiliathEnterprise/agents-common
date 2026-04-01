@@ -18,7 +18,7 @@ Feature: Real End-to-End Project Creation
     And a workspace "done-fresh"
     And the project layout is fresh
     When the prompt "Hello, check my project" is streamed through the adapter
-    Then the agent should answer with "pong"
+    Then the agent should answer with "Project audit passed"
 
   Scenario: Project audit passed using agent validation
     Given the project creation state is initialized
@@ -29,7 +29,7 @@ Feature: Real End-to-End Project Creation
 
   Scenario: Project audit failed using agent validation
     Given the project creation state is initialized
-    And a workspace "done-fresh"
+    And a workspace "done-invalid"
     And the project layout is fresh
-    When the prompt "project_template_scaffolder/validate fail" is streamed through the adapter
+    When the prompt "project_template_scaffolder/validate" is streamed through the adapter
     Then the agent should answer with "Project audit failed"

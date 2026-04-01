@@ -1,6 +1,6 @@
 [versions]
 springBoot = "3.5.11"
-springDependencyManagement = "1.1.6"
+springDependencyManagement = "1.1.7"
 ideaExt = "1.4.1"
 kotlin = "2.2.20"
 jreleaser = "1.23.0"

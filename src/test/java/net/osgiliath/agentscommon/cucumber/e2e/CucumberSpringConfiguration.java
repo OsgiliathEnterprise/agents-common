@@ -1,4 +1,4 @@
-package net.osgiliath.agentscommon.cucumber.mocked;
+package net.osgiliath.agentscommon.cucumber.e2e;
 
 import com.agentclientprotocol.model.ContentBlock;
 import dev.langchain4j.mcp.McpToolProvider;
@@ -29,63 +29,4 @@ public class CucumberSpringConfiguration {
      */
     @MockitoBean
     private CommandLineRunner commandLineRunner;
-
-    @MockitoBean(TOOL_PROVIDER_FULL)
-    private McpToolProvider toolProviderFull;
-    @MockitoBean(TOOL_PROVIDER_NONE)
-    private McpToolProvider toolProviderNo;
-
-
-    /**
-     * Provide a mock AcpAgentSupportBridge bean for testing.
-     */
-    @Bean
-    public AcpAgentSupportBridge acpAgentSupportBridge() {
-        return new AcpAgentSupportBridge() {
-            @Override
-            public AgentInfoBridge getAgentInfo() {
-                return new AgentInfoBridge("Test Agent", "1.0");
-            }
-
-
-            @Override
-            public AcpSessionBridge createSession(String sessionId, String cwd, Map<String, String> mcpServers) {
-                return new AcpSessionBridge() {
-                    @Override
-                    public String getSessionId() {
-                        return sessionId;
-                    }
-
-                    @Override
-                    public AtomicBoolean cancelledFlag() {
-                        return new AtomicBoolean(false);
-                    }
-
-                    @Override
-                    public CompletableFuture<String> processPrompt(String promptText, java.util.List<ContentBlock.ResourceLink> resourceLinks) {
-                        String response = buildMockResponse(promptText, resourceLinks);
-                        return CompletableFuture.completedFuture(response);
-                    }
-
-                    @Override
-                    public void streamPrompt(String promptText, java.util.List<ContentBlock.ResourceLink> resourceLinks, TokenConsumer consumer) {
-                        String response = buildMockResponse(promptText, resourceLinks);
-                        for (String token : response.split(" ")) {
-                            consumer.onNext(token + " ");
-                        }
-                        consumer.onComplete();
-                    }
-
-                    private String buildMockResponse(String promptText, java.util.List<ContentBlock.ResourceLink> resourceLinks) {
-                        if (resourceLinks != null && !resourceLinks.isEmpty()) {
-                            // Include "attachment considered" when processing ResourceLinks
-                            return "Mock response for: " + promptText +
-                                    ". Attachment considered. Resource analysis complete. Content reviewed.";
-                        }
-                        return "Mock response: " + promptText;
-                    }
-                };
-            }
-        };
-    }
 }

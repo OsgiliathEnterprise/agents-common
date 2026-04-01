@@ -27,7 +27,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ProjectRootSteps {
 
     private static final Path DATASET_WORKSPACE_ROOT =
-            Path.of("src/test/resources/dataset/workspace").toAbsolutePath().normalize();
+            Path.of("src/test/resources/dataset/projectroot").toAbsolutePath().normalize();
     private final List<Path> tempDirectories = new ArrayList<>();
     @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
