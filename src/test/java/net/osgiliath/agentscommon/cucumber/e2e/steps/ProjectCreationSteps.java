@@ -8,7 +8,6 @@ import net.osgiliath.acplanggraphlangchainbridge.langgraph.LangGraph4jAdapter;
 import net.osgiliath.acplanggraphlangchainbridge.langgraph.state.SessionContext;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -19,6 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -37,9 +37,34 @@ public class ProjectCreationSteps {
     }
 
     @Given("a workspace {string}")
-    public void a_workspace(String workspace) {
-        File file = new File("src/test/resources/dataset/projectcreation/" + workspace);
-        this.workspacePath = file.getAbsolutePath();
+    public void a_workspace(String workspace) throws IOException {
+        // Copy the dataset to a temporary directory to avoid modifying the original
+        Path sourceDataset = Path.of("src/test/resources/dataset/projectcreation/" + workspace);
+        Path tempDir = Files.createTempDirectory("test-workspace-");
+        Path testWorkspace = tempDir.resolve(workspace);
+        
+        // Copy recursively
+        copyRecursively(sourceDataset, testWorkspace);
+        
+        this.workspacePath = testWorkspace.toAbsolutePath().toString();
+    }
+
+    private void copyRecursively(Path source, Path destination) throws IOException {
+        try (Stream<Path> paths = Files.walk(source)) {
+            paths.forEach(sourcePath -> {
+                try {
+                    Path destPath = destination.resolve(source.relativize(sourcePath));
+                    if (Files.isDirectory(sourcePath)) {
+                        Files.createDirectories(destPath);
+                    } else {
+                        Files.createDirectories(destPath.getParent());
+                        Files.copy(sourcePath, destPath);
+                    }
+                } catch (IOException e) {
+                    throw new RuntimeException("Failed to copy " + sourcePath + " to " + destination, e);
+                }
+            });
+        }
     }
 
     @Given("the project layout is {int} days old")
@@ -85,5 +110,13 @@ public class ProjectCreationSteps {
     public void the_agent_should_answer_with(String expectedAnswer) {
         String fullAnswer = String.join("", streamedAnswers);
         assertThat(fullAnswer).contains(expectedAnswer);
+    }
+
+    @Then("the workspace should contain file {string}")
+    public void the_workspace_should_contain_file(String filePath) {
+        Path file = Path.of(workspacePath).resolve(filePath);
+        assertThat(Files.exists(file))
+                .as("File should exist at " + file)
+                .isTrue();
     }
 }

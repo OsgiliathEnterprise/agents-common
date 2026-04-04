@@ -46,7 +46,9 @@ mcp:
 codeprompt:
   agent:
     skill-folders:
-      - classpath:ai/skills/foundational/templates/
+      - classpath:ai/skills/foundational/
+    agent-folders:
+      - classpath:ai/agents/
   acp:
     remote:
       enabled: true

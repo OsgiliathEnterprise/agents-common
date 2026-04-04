@@ -1,4 +1,4 @@
-Feature: Real End-to-End Project Creation
+Feature: End-to-End Project Layout update
 
   Scenario: Project structure is not done in the workspace
     Given the project creation state is initialized
@@ -33,3 +33,13 @@ Feature: Real End-to-End Project Creation
     And the project layout is fresh
     When the prompt "project_template_scaffolder/validate" is streamed through the adapter
     Then the agent should answer with "Project audit failed"
+
+  Scenario: Project layout is fixed when user agrees
+    Given the project creation state is initialized
+    And a workspace "done-invalid"
+    And the project layout is 30 days old
+    When the prompt "Hello, check my project" is streamed through the adapter
+    Then the agent should answer with "Would you like to update it to the latest conventions?"
+    When the prompt "Yes, please update the project layout" is streamed through the adapter
+    Then the agent should answer with "Project layout updated"
+
