@@ -21,14 +21,14 @@ import java.util.Optional;
 
 
 @Component
-public class ProjectStructureCheckerNode implements NodeAction<ProjectCreationState> {
+public class ProjectStructureMonitorNode implements NodeAction<ProjectCreationState> {
 
-    private static final Logger log = LoggerFactory.getLogger(ProjectStructureCheckerNode.class);
+    private static final Logger log = LoggerFactory.getLogger(ProjectStructureMonitorNode.class);
     private final AgentParser agentParser;
     private final Resource agentFileResource;
     private final CodepromptConfiguration codePromptConfiguration;
 
-    public ProjectStructureCheckerNode(
+    public ProjectStructureMonitorNode(
             AgentParser agentParser,
             CodepromptConfiguration codepromptConfiguration,
             ResourceLoader resourceLoader) {

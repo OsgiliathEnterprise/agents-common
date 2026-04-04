@@ -7,7 +7,7 @@ import net.osgiliath.agentscommon.cucumber.e2e.model.node.PingAgentNode;
 import net.osgiliath.acplanggraphlangchainbridge.langgraph.graph.PromptGraph;
 import net.osgiliath.agentscommon.cucumber.e2e.model.node.WorkspaceScannerNode;
 import net.osgiliath.agentscommon.langgraph.node.ProjectRootResolverNode;
-import net.osgiliath.agentscommon.langgraph.node.ProjectStructureCheckerNode;
+import net.osgiliath.agentscommon.langgraph.node.ProjectStructureMonitorNode;
 import net.osgiliath.agentscommon.langgraph.state.ProjectCreationState;
 import org.bsc.langgraph4j.GraphStateException;
 import org.bsc.langgraph4j.StateGraph;
@@ -29,13 +29,13 @@ public class ProjectCreationGraph implements PromptGraph<AcpState<ChatMessage>> 
 
     private final ProjectRootResolverNode projectRootResolverNode;
     private final WorkspaceScannerNode workspaceScannerNode;
-    private final ProjectStructureCheckerNode projectStructureCheckerNode;
+    private final ProjectStructureMonitorNode projectStructureCheckerNode;
     private final PingAgentNode pingAgentNode;
 
-    public ProjectCreationGraph(ProjectRootResolverNode projectRootResolverNode, WorkspaceScannerNode workspaceScannerNode, ProjectStructureCheckerNode projectStructureCheckerNode, PingAgentNode pingAgentNode) {
+    public ProjectCreationGraph(ProjectRootResolverNode projectRootResolverNode, WorkspaceScannerNode workspaceScannerNode, ProjectStructureMonitorNode projectStructureMonitorNode, PingAgentNode pingAgentNode) {
         this.projectRootResolverNode = projectRootResolverNode;
         this.workspaceScannerNode = workspaceScannerNode;
-        this.projectStructureCheckerNode = projectStructureCheckerNode;
+        this.projectStructureCheckerNode = projectStructureMonitorNode;
         this.pingAgentNode = pingAgentNode;
     }
 
