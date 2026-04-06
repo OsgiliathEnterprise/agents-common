@@ -77,7 +77,6 @@ public class MemoryTool {
             String currentMemory = Files.readString(path, StandardCharsets.UTF_8);
             List<String> entries = splitMemory(currentMemory);
             boolean replaced = false;
-            int newSize = 0;
 
             for (int i = 0; i < entries.size(); i++) {
                 if (entries.get(i).contains(oldText)) {

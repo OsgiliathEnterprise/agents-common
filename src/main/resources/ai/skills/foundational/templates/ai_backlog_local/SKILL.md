@@ -108,7 +108,7 @@ Keep every section **minimal** — only information useful for AI understanding.
 
 ## Required Inputs Before Rendering
 
-Before generating a new task folder, ask:
+Before generating a new task folder in interactive mode, ask:
 
 - Task type prefix (`TASK_TYPE`), e.g. `feat`, `fix`, `chore`, `refactor`
 - Numeric task ID (`TASK_ID`), e.g. `042`
@@ -119,6 +119,19 @@ Before generating a new task folder, ask:
 - Effort Fibonacci 1–21 (`EFFORT`)
 - Reporter persona (`REPORTER`) in kebab-case, e.g. `backend-architect`
 - Assignees (`ASSIGNEES`) as YAML inline list values, e.g. `agent-alpha,HumanCaller`
+
+For non-interactive mandatory project-layout runs (`TASK_ID=001`, `TASK_NAME=Project_layout`), do not ask follow-up questions.
+If values are missing, use deterministic defaults:
+
+- `TASK_TYPE=chore`
+- `TASK_ID=001`
+- `TASK_NAME=Project_layout`
+- `BUSINESS_VALUE=8`
+- `REQUIREMENT_CLARITY=8`
+- `SEVERITY=major`
+- `EFFORT=5`
+- `REPORTER=project-template-scaffolder`
+- `ASSIGNEES=HumanCaller`
 
 ## Checks Organization
 
@@ -249,11 +262,13 @@ For each failed check, provide:
 
 Use this flow:
 
-1. Ask for required rendering inputs (`TASK_TYPE`, `TASK_ID`, `TASK_NAME`, `BUSINESS_VALUE`, `REQUIREMENT_CLARITY`,
+1. Interactive mode: ask for required rendering inputs (`TASK_TYPE`, `TASK_ID`, `TASK_NAME`, `BUSINESS_VALUE`, `REQUIREMENT_CLARITY`,
    `SEVERITY`, `EFFORT`, `REPORTER`, `ASSIGNEES`).
-2. Copy `000-Task_Template/` to `ai/tasks/{{TASK_ID}}-{{TASK_NAME}}/` using `create_new_file_with_text`.
-3. Replace `{{...}}` variables in all phase files using `replace_file_text_by_path`.
-4. Load `asserts/backlog-checks.json` using `get_file_text_by_path`, then evaluate each domain file and all checks from
+2. Non-interactive mandatory mode (`001-Project_layout`): apply defaults above and do not ask questions.
+3. Copy `000-Task_Template/` to `ai/tasks/{{TASK_ID}}-{{TASK_NAME}}/` using `create_new_file_with_text`.
+4. Replace `{{...}}` variables in all phase files using `replace_file_text_by_path`.
+5. Ensure phase files are created/verified in deterministic order: `1-goal.md` ... `15-doc_tutorial.md`.
+6. Load `asserts/backlog-checks.json` using `get_file_text_by_path`, then evaluate each domain file and all checks from
    `BKL-001` to `BKL-007` with
    file-backed evidence.
 

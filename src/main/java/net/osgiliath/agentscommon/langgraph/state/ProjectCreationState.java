@@ -15,6 +15,16 @@ public class ProjectCreationState extends WorspaceState<ChatMessage> {
 
     public static final String PROJECT_LAYOUT_DONE_CHANNEL = "projectLayoutDone";
     public static final String PROJECT_LAYOUT_UPDATE_DATE_CHANNEL = "projectLayoutUpdateDate";
+    /**
+     * Set to {@code true} by {@code ProjectStructureMonitorNode} when the user has confirmed
+     * an update request, so the graph can route to the applier node in the same turn.
+     */
+    public static final String PENDING_LAYOUT_UPDATE_CHANNEL = "pendingLayoutUpdate";
+    /**
+     * Set to {@code true} by {@code ProjectStructureMonitorNode} when it asks the user
+     * whether to refresh the project layout.
+     */
+    public static final String LAYOUT_UPDATE_PROPOSAL_CHANNEL = "layoutUpdateProposal";
 
     public static final Map<String, Channel<?>> SCHEMA = getSchema();
 
@@ -30,6 +40,8 @@ public class ProjectCreationState extends WorspaceState<ChatMessage> {
         Map<String, Channel<?>> schema = new HashMap<>(WorspaceState.SCHEMA);
         schema.put(PROJECT_LAYOUT_DONE_CHANNEL, Channels.base((Boolean currentValue, Boolean newValue) -> newValue, () -> false));
         schema.put(PROJECT_LAYOUT_UPDATE_DATE_CHANNEL, Channels.base((OffsetDateTime currentValue, OffsetDateTime newValue) -> newValue));
+        schema.put(PENDING_LAYOUT_UPDATE_CHANNEL, Channels.base((Boolean currentValue, Boolean newValue) -> newValue, () -> false));
+        schema.put(LAYOUT_UPDATE_PROPOSAL_CHANNEL, Channels.base((Boolean currentValue, Boolean newValue) -> newValue, () -> false));
         return schema;
     }
 
@@ -39,5 +51,13 @@ public class ProjectCreationState extends WorspaceState<ChatMessage> {
 
     public Optional<OffsetDateTime> projectLayoutUpdateDate() {
         return this.value(PROJECT_LAYOUT_UPDATE_DATE_CHANNEL);
+    }
+
+    public Optional<Boolean> pendingLayoutUpdate() {
+        return this.value(PENDING_LAYOUT_UPDATE_CHANNEL);
+    }
+
+    public Optional<Boolean> layoutUpdateProposal() {
+        return this.value(LAYOUT_UPDATE_PROPOSAL_CHANNEL);
     }
 }

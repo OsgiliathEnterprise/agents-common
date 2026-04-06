@@ -34,6 +34,7 @@ Feature: End-to-End Project Layout update
     When the prompt "project_template_scaffolder/validate" is streamed through the adapter
     Then the agent should answer with "Project audit failed"
 
+  @LLMRequired
   Scenario: Apply new project layout
     Given the project creation state is initialized
     And a workspace "done-fresh"
@@ -45,3 +46,13 @@ Feature: End-to-End Project Layout update
     And the project layout should match the expected layout definition
     And the layout should be effectively in place and active
 
+  @LLMRequired
+  Scenario: Apply new project layout on not-done workspace
+    Given the project creation state is initialized
+    And a workspace "not-done"
+    When the prompt "Hello, check my project" is streamed through the adapter
+    Then the agent should answer with "The project structure task is not done. Would you like to setup the project?"
+    When the prompt "Yes, please update the project layout" is streamed through the adapter
+    Then the agent should answer with "Project layout updated"
+    And the project layout should match the expected layout definition
+    And the layout should be effectively in place and active

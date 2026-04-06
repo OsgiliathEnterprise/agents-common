@@ -1,13 +1,13 @@
 package net.osgiliath.agentscommon.cucumber.e2e.model.graph;
 
-import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
+import net.osgiliath.acplanggraphlangchainbridge.langgraph.graph.PromptGraph;
 import net.osgiliath.acplanggraphlangchainbridge.langgraph.state.AcpState;
 import net.osgiliath.agentscommon.cucumber.e2e.model.node.PingAgentNode;
-import net.osgiliath.acplanggraphlangchainbridge.langgraph.graph.PromptGraph;
 import net.osgiliath.agentscommon.cucumber.e2e.model.node.WorkspaceScannerNode;
+import net.osgiliath.agentscommon.langgraph.node.ProjectLayoutApplierNode;
 import net.osgiliath.agentscommon.langgraph.node.ProjectRootResolverNode;
-import net.osgiliath.agentscommon.langgraph.node.ProjectStructureMonitorNode;
+import net.osgiliath.agentscommon.langgraph.node.ProjectStructureAuditorNode;
 import net.osgiliath.agentscommon.langgraph.state.ProjectCreationState;
 import org.bsc.langgraph4j.GraphStateException;
 import org.bsc.langgraph4j.StateGraph;
@@ -22,20 +22,31 @@ import static org.bsc.langgraph4j.action.AsyncNodeAction.node_async;
 
 /**
  * Graph for project creation workflow.
- * It first scans the workspace, then checks the project structure, and then passes the ball to the pong graph if ok.
+ * <pre>
+ * START → resolver → scanner → checker ──┬─(pendingLayoutUpdate)──→ applier → END
+ *                                         ├─(AiMessage / question)──→ END
+ *                                         └─(pass-through)──────────→ pong → END
+ * </pre>
  */
 @Component
 public class ProjectCreationGraph implements PromptGraph<AcpState<ChatMessage>> {
 
     private final ProjectRootResolverNode projectRootResolverNode;
     private final WorkspaceScannerNode workspaceScannerNode;
-    private final ProjectStructureMonitorNode projectStructureCheckerNode;
+    private final ProjectStructureAuditorNode projectStructureCheckerNode;
+    private final ProjectLayoutApplierNode projectLayoutApplierNode;
     private final PingAgentNode pingAgentNode;
 
-    public ProjectCreationGraph(ProjectRootResolverNode projectRootResolverNode, WorkspaceScannerNode workspaceScannerNode, ProjectStructureMonitorNode projectStructureMonitorNode, PingAgentNode pingAgentNode) {
+    public ProjectCreationGraph(
+            ProjectRootResolverNode projectRootResolverNode,
+            WorkspaceScannerNode workspaceScannerNode,
+            ProjectStructureAuditorNode projectStructureMonitorNode,
+            ProjectLayoutApplierNode projectLayoutApplierNode,
+            PingAgentNode pingAgentNode) {
         this.projectRootResolverNode = projectRootResolverNode;
         this.workspaceScannerNode = workspaceScannerNode;
         this.projectStructureCheckerNode = projectStructureMonitorNode;
+        this.projectLayoutApplierNode = projectLayoutApplierNode;
         this.pingAgentNode = pingAgentNode;
     }
 
@@ -46,18 +57,24 @@ public class ProjectCreationGraph implements PromptGraph<AcpState<ChatMessage>> 
                 .addNode("resolver", node_async(state -> projectRootResolverNode.apply(new ProjectCreationState(state.data()))))
                 .addNode("scanner", node_async(state -> workspaceScannerNode.apply(new ProjectCreationState(state.data()))))
                 .addNode("checker", node_async(state -> projectStructureCheckerNode.apply(new ProjectCreationState(state.data()))))
+                .addNode("applier", node_async(state -> projectLayoutApplierNode.apply(new ProjectCreationState(state.data()))))
                 .addNode("pong", node_async(pingAgentNode::apply))
                 .addEdge(START, "resolver")
                 .addEdge("resolver", "scanner")
                 .addEdge("scanner", "checker")
                 .addConditionalEdges("checker",
                         edge_async(state -> {
-                            if (state.lastMessage().filter(m -> m instanceof AiMessage).isPresent()) {
+                            ProjectCreationState pcs = new ProjectCreationState(state.data());
+                            if (pcs.pendingLayoutUpdate().orElse(false)) {
+                                return "apply";
+                            }
+                            if (pcs.layoutUpdateProposal().orElse(false)) {
                                 return "exit";
                             }
                             return "next";
                         }),
-                        Map.of("next", "pong", "exit", END))
+                        Map.of("apply", "applier", "exit", END, "next", "pong"))
+                .addEdge("applier", END)
                 .addEdge("pong", END);
     }
 }

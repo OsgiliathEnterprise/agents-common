@@ -4,6 +4,7 @@ import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import io.cucumber.java.After;
+import dev.langchain4j.store.memory.chat.InMemoryChatMemoryStore;
 import net.osgiliath.acplanggraphlangchainbridge.acp.AcpAgentSupportBridge;
 import net.osgiliath.acplanggraphlangchainbridge.langgraph.LangGraph4jAdapter;
 import net.osgiliath.acplanggraphlangchainbridge.langgraph.state.SessionContext;
@@ -25,6 +26,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class ProjectCreationSteps {
 
+    private static final Path TEST_WORKSPACES_ROOT = Path.of("build", "test-workspaces");
+
     private static final List<String> REQUIRED_LAYOUT_FILES = List.of(
             "build.gradle.kts",
             "settings.gradle.kts",
@@ -39,6 +42,9 @@ public class ProjectCreationSteps {
     @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
     private LangGraph4jAdapter langGraph4jAdapter;
+    @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
+    @Autowired
+    private InMemoryChatMemoryStore sessionChatMemoryStore;
     private String workspacePath;
     private String workspaceDataset;
     private Path tempWorkspaceRoot;
@@ -55,7 +61,8 @@ public class ProjectCreationSteps {
     public void a_workspace(String workspace) throws IOException {
         // Copy the dataset to a temporary directory to avoid modifying the original
         Path sourceDataset = Path.of("src/test/resources/dataset/projectcreation/" + workspace);
-        Path tempDir = Files.createTempDirectory("test-workspace-");
+        Files.createDirectories(TEST_WORKSPACES_ROOT);
+        Path tempDir = Files.createTempDirectory(TEST_WORKSPACES_ROOT, "test-workspace-");
         Path testWorkspace = tempDir.resolve(workspace);
         
         // Copy recursively
@@ -146,19 +153,53 @@ public class ProjectCreationSteps {
     @Then("the project layout should match the expected layout definition")
     public void the_project_layout_should_match_the_expected_layout_definition() {
         Path root = Path.of(workspacePath);
-        for (String relativeFile : REQUIRED_LAYOUT_FILES) {
-            Path file = root.resolve(relativeFile);
-            assertThat(Files.exists(file))
-                    .as("Required file should exist at " + file)
-                    .isTrue();
-        }
+
+        List<String> missingFiles = REQUIRED_LAYOUT_FILES.stream()
+                .filter(relativeFile -> !Files.exists(root.resolve(relativeFile)))
+                .toList();
+
         Path taskDir = root.resolve("ai/tasks/001-Project_layout");
-        assertThat(Files.isDirectory(taskDir))
-                .as("Expected layout task directory should exist at " + taskDir)
+        boolean taskDirExists = Files.isDirectory(taskDir);
+
+        assertThat(missingFiles.isEmpty() && taskDirExists)
+                .withFailMessage(buildLayoutFailureMessage(root, missingFiles, taskDirExists))
                 .isTrue();
 
         // Keep the scenario reproducible by restoring the workspace mutation done by skills.
         deleteProjectLayoutArtifacts(root);
+    }
+
+    private String buildLayoutFailureMessage(Path root, List<String> missingFiles, boolean taskDirExists) {
+        String streamed = String.join("", streamedAnswers);
+        StringBuilder message = new StringBuilder();
+        message.append("Project layout was not applied correctly for workspace: ")
+                .append(root)
+                .append(System.lineSeparator());
+
+        if (!missingFiles.isEmpty()) {
+            message.append("Missing required files: ")
+                    .append(missingFiles)
+                    .append(System.lineSeparator());
+        }
+
+        if (!taskDirExists) {
+            message.append("Missing required task directory: ")
+                    .append(root.resolve("ai/tasks/001-Project_layout"))
+                    .append(System.lineSeparator());
+        }
+
+        message.append("Streamed agent answer: ")
+                .append(streamed)
+                .append(System.lineSeparator())
+                .append("Hint: if stderr logs contain \"No working IDE endpoint available\", ")
+                .append("the failure came from downstream JetBrains MCP tool execution, not from the incoming prompt itself. ")
+                .append("This scenario copies the dataset into a temporary workspace under ")
+                .append(root.getParent())
+                .append(" and streams with a fresh SessionContext using an empty mcpServers map. ")
+                .append("Even if Docker MCP Gateway has JetBrains tools enabled and IntelliJ is open, those tools still need a live IDE endpoint able to serve that copied workspace. ")
+                .append("In practice, the IDE usually has the original CodingCrew project open, not this temporary cloned workspace used by the test.");
+
+        return message.toString();
     }
 
     @Then("the layout should be effectively in place and active")
@@ -185,6 +226,10 @@ public class ProjectCreationSteps {
     public void cleanup_workspace() throws IOException {
         if (tempWorkspaceRoot != null && Files.exists(tempWorkspaceRoot)) {
             deleteRecursively(tempWorkspaceRoot);
+        }
+        // Clear any pending chat memory left in the store so scenarios don't bleed into each other
+        if (sessionChatMemoryStore != null) {
+            sessionChatMemoryStore.deleteMessages("test-session");
         }
         workspacePath = null;
         workspaceDataset = null;

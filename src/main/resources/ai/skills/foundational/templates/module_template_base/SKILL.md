@@ -45,11 +45,14 @@ tools: [ "list_files_in_folder", "get_file_text_by_path", "create_new_file_with_
 
 ## Required Inputs Before Rendering
 
-Before generating files, ask:
+Before generating files in interactive bootstrap mode, ask:
 
 - Which package should be used for Cucumber classes (`CUCUMBER_PACKAGE`)?
 - Which glue package should be used (`CUCUMBER_GLUE_PACKAGE`)?
 - What is the Spring Boot application class FQN (`SPRING_BOOT_TEST_APPLICATION_CLASS`)?
+
+For non-interactive `amend-existing` with `dryRun=false`, do not ask follow-up questions.
+If any value is missing, prefer keeping existing project files unchanged over inventing placeholders.
 
 ## Purpose
 
@@ -60,7 +63,8 @@ library that can be built, tested, analyzed, and released.
 
 - Check only repository-root conventions unless a rule explicitly allows module fallback.
 - Report deterministic PASS/FAIL results per check with file evidence.
-- Do not modify files; this skill is audit-only.
+- `validate` and `dryRun=true` are audit-only.
+- For `amend-existing` with `dryRun=false`, apply only minimal deterministic scaffold changes required by failed checks.
 
 ## Required Artifacts
 

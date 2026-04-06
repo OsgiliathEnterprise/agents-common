@@ -38,18 +38,22 @@ Your mission is to ensure each module layout is correct, reproducible, and conti
 3. `setup-backlog`
     - Setup the AI backlog structure (`ai/`, `ai/tasks/`, `000-Task_Template`), initialize AI memory, and write the
       mandatory completion task.
-4. `amend-existing`
+4. `setup-memory`
+    - Setup the AI memory structure (`ai/memory.md`), initialize AI memory, and write the
+      mandatory completion task.
+5. `amend-existing`
     - Propose and optionally apply targeted amendments to an existing module.
-5. `biweekly-review`
+6. `biweekly-review`
     - Perform the periodic two-week review and propose amendments.
 
 ## Required Inputs
 
-Always ask for missing inputs before making changes.
+Ask for missing inputs only for interactive runs (`validate`, `bootstrap`, `setup-backlog`, `setup-memory`, `biweekly-review`) when values are truly required.
+For non-interactive `amend-existing` with `dryRun=false`, do not ask follow-up questions: apply defaults and execute immediately.
 
 ### Common inputs
 
-- `mode`: one of `validate | bootstrap | setup-backlog | amend-existing | biweekly-review`
+- `mode`: one of `validate | bootstrap | setup-backlog | setup-memory | amend-existing | biweekly-review`
 - `targetPath`: repository root or module folder to inspect/update
 - `dryRun`: `true|false` (default `true` for amend flows)
 
@@ -72,6 +76,17 @@ Always ask for missing inputs before making changes.
 - `requirementClarity` (1-10)
 - `severity` (`critical|major|minor`)
 - `effort` (`1|2|3|5|8|13|21`)
+
+### Defaults for non-interactive `amend-existing` (`dryRun=false`)
+
+When the caller explicitly requests immediate apply (no clarification loop), use these defaults if values are missing:
+
+- `reporter=project-template-scaffolder`
+- `assignees=[HumanCaller]`
+- `businessValue=8`
+- `requirementClarity=8`
+- `severity=major`
+- `effort=5`
 
 ### Inputs for `biweekly-review`
 
@@ -105,9 +120,13 @@ Always ask for missing inputs before making changes.
 
 - Ensure `ai/`, `ai/tasks/`, and `ai/tasks/000-Task_Template/` exist.
 - Render/copy all required phase templates and assets from `ai_backlog_local`.
-- Initialize `ai/MEMORY.md` using `ai_memory` if it doesn't exist.
+- Delegate `ai/MEMORY.md` verification to the `ai_memory` skill (see its Verification Flow).
 - Run backlog checks (`BKL-001` to `BKL-007`) with file evidence.
 - Run "Mandatory completion task" flow to record the backlog setup.
+
+### 4.1) `setup-memory`
+
+- Delegate all memory file verification and initialization to the `ai_memory` skill (see its Verification Flow).
 
 ### 5) `amend-existing`
 
@@ -115,6 +134,7 @@ Always ask for missing inputs before making changes.
 - Produce minimal patch targets with rationale.
 - If `dryRun=true`: provide patch plan only.
 - If `dryRun=false`: apply minimal changes, then re-run checks.
+- If caller says to apply immediately, do not ask for additional inputs; use defaults above.
 
 ### 6) Mandatory completion task
 
@@ -128,6 +148,7 @@ At the end of every successful run (`validate`, `bootstrap`, `setup-backlog`, `a
     - `TASK_ID=001`
     - `TASK_NAME=Project_layout`
 - Update status and achieved actions with what was created/changed.
+- Write/verify phase files in deterministic order: `1-goal.md` ... `15-doc_tutorial.md`.
 
 ### 7) Biweekly governance
 
@@ -163,8 +184,9 @@ Always return:
 - Do not overwrite unrelated files.
 - Keep changes minimal and deterministic.
 - In `dryRun` mode, never write files.
-- If required inputs are missing, stop and ask concise clarification questions.
+- If required interactive inputs are missing, ask concise clarification questions.
 - If a requested change contradicts the foundational skills contract, explain why and propose a compliant alternative.
 - `dryRun=true` means no filesystem writes.
 - In `validate`, default to read-only behavior unless explicitly told to write the mandatory completion task and
   `dryRun=false`.
+- In non-interactive `amend-existing dryRun=false`, do not ask follow-up questions; apply and report deterministic output.

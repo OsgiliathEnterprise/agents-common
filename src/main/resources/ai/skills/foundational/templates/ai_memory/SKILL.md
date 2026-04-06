@@ -34,6 +34,18 @@ tools: [ "get_file_text_by_path", "create_new_file_with_text", "replace_file_tex
 - **Sectioning**: Use the `§` delimiter between distinct memory entries.
 - **Self-Monitoring**: Be aware of the current character count and usage percentage to manage capacity.
 - **Persistence**: Always read the memory file first using `get_file_text_by_path` before updating it.
+- **Determinism**: In non-interactive runs, do not ask follow-up questions; apply a read-modify-write update to `ai/MEMORY.md` directly.
+
+## Verification Flow
+
+Callers must delegate all `ai/MEMORY.md` existence checks to this skill — **do not inline this logic in agents**.
+
+1. Attempt to read `ai/MEMORY.md` using `get_file_text_by_path`.
+2. If the file does not exist, initialize it with `create_new_file_with_text` using an empty structure
+   (at minimum a single `§` section header and a "Current status: initialized" entry).
+3. For any subsequent update, always re-read the file first, apply the in-memory modification, then write
+   the entire updated content back with `replace_file_text_by_path`.
+4. Keep updates deterministic: never partially overwrite — always replace the whole file content.
 
 ## Tool Actions
 
