@@ -2,10 +2,30 @@
   "domain": "ci",
   "checks": [
     {
+      "id": "FND-001",
+      "title": "Github release configured",
+      "severity": "medium",
+      "required_files": [
+        ".github/workflows/release.yml"
+      ],
+      "signals": []
+    },
+    {
+      "id": "FND-002",
+      "title": "Github release drafter configured",
+      "severity": "minor",
+      "required_files": [
+        ".github/workflows/release-draft.yml"
+      ],
+      "signals": []
+    },
+    {
       "id": "FND-003",
       "title": "Dependabot configured",
       "severity": "major",
-      "required_files": [".github/dependabot.yml"],
+      "required_files": [
+        ".github/dependabot.yml"
+      ],
       "signals": [
         "package-ecosystem:\\s*\\\"?gradle\\\"?",
         "directory:\\s*\\\"/\\\""
@@ -15,7 +35,9 @@
       "id": "FND-004",
       "title": "GitHub CI configured",
       "severity": "critical",
-      "required_files": [".github/workflows/ci.yml"],
+      "required_files": [
+        ".github/workflows/ci.yml"
+      ],
       "signals": [
         "on:",
         "push:",

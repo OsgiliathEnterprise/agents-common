@@ -1,194 +1,140 @@
 ---
 name: ai_backlog_local
 description: You are an assistant managing the AI task lifecycle backlog with a structured folder layout under the project root `ai/` directory, ensuring each task follows a phased workflow from goal through documentation.
-tools: [ "list_files_in_folder", "get_file_text_by_path", "create_new_file_with_text", "replace_file_text_by_path" ]
+tools: [ "list_files_in_folder", "create_directory", "get_file_text_by_path", "create_new_file_with_text", "replace_file_text_by_path", "write_file", "directory_tree" ]
 ---
 
-# Skill: AI Backlog Local Lifecycle Manager
+# Skill: AI Local Backlog Lifecycle Manager
+
+## Description
+
+Manages an AI task lifecycle backlog under `ai/tasks/` at the project root. Each task follows a numbered 15-phase
+workflow from goal through documentation, using Markdown files with YAML frontmatter. Creates, updates, and validates
+task folders from templates.
 
 ## Quick Reference
 
-| Need                                  | Use                                                                   |
-|---------------------------------------|-----------------------------------------------------------------------|
-| Check definitions and detection hints | `asserts/backlog-checks.json`                                         |
-| Domain checks (structure)             | `asserts/structure.json`                                              |
-| Domain checks (task content)          | `asserts/task-content.json`                                           |
-| Task template: Goal                   | `templates/ai/tasks/000-Task_Template/1-goal.md.template`             |
-| Task template: Design                 | `templates/ai/tasks/000-Task_Template/2-design.md.template`           |
-| Task template: Scenarii               | `templates/ai/tasks/000-Task_Template/3-scenarii.md.template`         |
-| Task template: Tests                  | `templates/ai/tasks/000-Task_Template/4-tests.md.template`            |
-| Task template: Implementation         | `templates/ai/tasks/000-Task_Template/5-implementation.md.template`   |
-| Task template: Refactor               | `templates/ai/tasks/000-Task_Template/6-refactor.md.template`         |
-| Task template: Automation             | `templates/ai/tasks/000-Task_Template/7-automation.md.template`       |
-| Task template: Retrospective          | `templates/ai/tasks/000-Task_Template/8-retrospective.md.template`    |
-| Task template: Skills                 | `templates/ai/tasks/000-Task_Template/9-skills.md.template`           |
-| Task template: Agents                 | `templates/ai/tasks/000-Task_Template/10-agents.md.template`          |
-| Task template: Doc Promotion          | `templates/ai/tasks/000-Task_Template/11-doc_promotion.md.template`   |
-| Task template: Doc Explanation        | `templates/ai/tasks/000-Task_Template/12-doc_explanation.md.template` |
-| Task template: Doc Reference          | `templates/ai/tasks/000-Task_Template/13-doc_reference.md.template`   |
-| Task template: Doc How-To             | `templates/ai/tasks/000-Task_Template/14-doc_howto.md.template`       |
-| Task template: Doc Tutorial           | `templates/ai/tasks/000-Task_Template/15-doc_tutorial.md.template`    |
-| Placeholder variable examples         | `templates/variables.example.env`                                     |
+| Need                            | Source                               |
+|---------------------------------|--------------------------------------|
+| Check definitions (BKL-001–007) | `asserts/backlog-checks.json`        |
+| Domain checks (structure)       | `asserts/structure.json`             |
+| Domain checks (task content)    | `asserts/task-content.json`          |
+| Task templates (phases 1–15)    | `assets/ai/tasks/000-Task_Template/` |
+| Placeholder variable examples   | `templates/variables.example.env`    |
 
-## Template and Asset Semantics
+## Required Inputs
 
-- Templates use `{{VARIABLE_NAME}}` placeholders, substituted when instantiating a new task.
-- Each task is a numbered folder under `ai/tasks/` (e.g. `ai/tasks/042-Add_retry_logic/`).
-- The `000-Task_Template/` folder is the canonical scaffold; copy and rename it to create a new task.
+For interactive mode, ask before generating:
 
-## Frontmatter Contract
+| Variable              | Description              | Example                            |
+|-----------------------|--------------------------|------------------------------------|
+| `TASK_TYPE`           | Type prefix              | `feat`, `fix`, `chore`, `refactor` |
+| `TASK_ID`             | Numeric ID (zero-padded) | `042`                              |
+| `TASK_NAME`           | Name slug                | `Add_retry_logic`                  |
+| `BUSINESS_VALUE`      | Integer 1–10             | `8`                                |
+| `REQUIREMENT_CLARITY` | Integer 1–10             | `7`                                |
+| `SEVERITY`            | Enum                     | `critical`, `major`, `minor`       |
+| `EFFORT`              | Fibonacci 1–21           | `5`                                |
+| `REPORTER`            | Persona in kebab-case    | `backend-architect`                |
+| `ASSIGNEES`           | YAML inline list         | `agent-alpha,HumanCaller`          |
 
-Every task phase file **must** include a YAML frontmatter header:
+For non-interactive mandatory project-layout runs (`TASK_ID=001`, `TASK_NAME=Project_layout`), apply these defaults and
+do not ask questions:
+`TASK_TYPE=chore`, `BUSINESS_VALUE=8`, `REQUIREMENT_CLARITY=8`, `SEVERITY=major`, `EFFORT=5`,
+`REPORTER=project-template-scaffolder`, `ASSIGNEES=HumanCaller`.
+
+## Explanation
+
+**Template placeholders**: `{{VARIABLE_NAME}}` format, replaced when instantiating a new task.
+
+**Task folder**: `ai/tasks/<TASK_ID>-<TASK_NAME>/`, e.g. `ai/tasks/042-Add_retry_logic/`.
+
+**Phase files (1–15):**
+
+| #  | File                    | Purpose                            |
+|----|-------------------------|------------------------------------|
+| 1  | `1-goal.md`             | Goal of the task                   |
+| 2  | `2-design.md`           | ADRs and design rationale          |
+| 3  | `3-scenarii.md`         | Gherkin scenarios incl. edge cases |
+| 4  | `4-tests.md`            | Test implementation from Gherkin   |
+| 5  | `5-implementation.md`   | Production code implementation     |
+| 6  | `6-refactor.md`         | Refactoring pass                   |
+| 7  | `7-automation.md`       | CI/CD and automation               |
+| 8  | `8-retrospective.md`    | Scrum-style retrospective          |
+| 9  | `9-skills.md`           | New skills from retrospective      |
+| 10 | `10-agents.md`          | New agents from retrospective      |
+| 11 | `11-doc_promotion.md`   | Promotional documentation          |
+| 12 | `12-doc_explanation.md` | Explanation documentation          |
+| 13 | `13-doc_reference.md`   | Reference documentation            |
+| 14 | `14-doc_howto.md`       | How-to guide                       |
+| 15 | `15-doc_tutorial.md`    | Step-by-step tutorial              |
+
+**Frontmatter contract** (all phase files):
 
 ```yaml
 ---
-id: {{TASK_TYPE}}-{{TASK_ID}}
-created: {{CREATED_DATETIME}}
-updated: {{UPDATED_DATETIME}}
+id: <type>-<taskid>
+created: <ISO-8601>
+updated: <ISO-8601>
 status: TODO|DOING|DONE
 links: [ ]
-reporter: {{REPORTER}}
-assignees: [ {{ASSIGNEES}} ]
-business-value: {{BUSINESS_VALUE}}
-requirement-clarity: {{REQUIREMENT_CLARITY}}
-severity: {{SEVERITY}}
-effort: {{EFFORT}}
+reporter: <kebab-case>
+assignees: [ <AgentId|HumanCaller> ]
+business-value: 1–10
+requirement-clarity: 1–10
+severity: critical|major|minor
+effort: 1|2|3|5|8|13|21
 ---
 ```
 
-| Attribute             | Type / Constraint                              |
-|-----------------------|------------------------------------------------|
-| `id`                  | `<type>-<taskid>`, e.g. `feat-042`             |
-| `created`             | ISO-8601 local datetime                        |
-| `updated`             | ISO-8601 local datetime                        |
-| `status`              | Enum: `TODO`, `DOING`, `DONE`                  |
-| `links`               | List of related task IDs                       |
-| `reporter`            | Persona identifier in kebab-case               |
-| `assignees`           | YAML inline list of agent IDs or `HumanCaller` |
-| `business-value`      | Integer 1–10                                   |
-| `requirement-clarity` | Integer 1–10                                   |
-| `severity`            | Enum: `critical`, `major`, `minor`             |
-| `effort`              | Fibonacci: 1, 2, 3, 5, 8, 13, 21               |
+**Section conventions** (all phase files):
 
-## Section Conventions (all phase files)
+| Level | Purpose                        |
+|-------|--------------------------------|
+| H1    | Task name + very short summary |
+| H2 §1 | Detailed task checklist        |
+| H2 §2 | Detailed description           |
+| H2 §3 | Actions achieved               |
+| H2 §4 | Files created                  |
+| H2 §5 | Rationale of choices           |
+| H2 §6 | Alternatives dropped           |
+| H2 §7 | Other possible alternatives    |
+| H2 §8 | Difficulties encountered       |
 
-Keep every section **minimal** — only information useful for AI understanding.
+All structural and content checks are defined in `asserts/.json`. Never copy `asserts/` files into target projects.
 
-| Level | Purpose                                   |
-|-------|-------------------------------------------|
-| H1    | Task name as title + very short summary   |
-| H2 §1 | Detailed task checklist                   |
-| H2 §2 | More detailed (still concise) description |
-| H2 §3 | Actions achieved                          |
-| H2 §4 | Files created                             |
-| H2 §5 | Rationale of choices (if any)             |
-| H2 §6 | Alternatives dropped and rationale        |
-| H2 §7 | Other possible alternatives               |
-| H2 §8 | Difficulties encountered                  |
+## Process
 
-## Task Lifecycle Phases
+1. For interactive mode: gather all required inputs (see Required Inputs).
+2. If `ai/` or `ai/tasks/` is missing, create these directories first.
+3. Create a `<projectdir>/ai/tasks/001-Project_layout/*` folder if it doesn't exists.
+4. Instantiate tasks from template (clone them, without the suffix) with `write_file`.
+5. Replace `{{...}}` variables in all 15 phases files tasks of `ai/tasks/001-Project_layout/*.md` using
+   `replace_file_text_by_path`, ensure the frontmatter is correctly filled.
+6. Fill the actions description on each tickets based on everything that happened everything.
 
-| #  | File                    | Purpose                                             |
-|----|-------------------------|-----------------------------------------------------|
-| 1  | `1-goal.md`             | Describe the goal of the task                       |
-| 2  | `2-design.md`           | ADRs and design rationale                           |
-| 3  | `3-scenarii.md`         | Gherkin scenarios incl. edge cases                  |
-| 4  | `4-tests.md`            | Test implementation from Gherkin; failing at `Then` |
-| 5  | `5-implementation.md`   | Production code implementation                      |
-| 6  | `6-refactor.md`         | Refactoring pass                                    |
-| 7  | `7-automation.md`       | CI/CD and automation additions                      |
-| 8  | `8-retrospective.md`    | Scrum-style retrospective                           |
-| 9  | `9-skills.md`           | New skills created from retrospective insights      |
-| 10 | `10-agents.md`          | New agents created (incl. skill usage) from retro   |
-| 11 | `11-doc_promotion.md`   | Promotional / announcement documentation            |
-| 12 | `12-doc_explanation.md` | Explanation-oriented documentation                  |
-| 13 | `13-doc_reference.md`   | Reference documentation                             |
-| 14 | `14-doc_howto.md`       | How-to guide                                        |
-| 15 | `15-doc_tutorial.md`    | Step-by-step tutorial                               |
+NEVER copy `asserts/` files into the target project.
 
-## Required Inputs Before Rendering
+## Mandatory completion task
 
-Before generating a new task folder in interactive mode, ask:
+Evaluate results against the skill's `asserts/*.json`
 
-- Task type prefix (`TASK_TYPE`), e.g. `feat`, `fix`, `chore`, `refactor`
-- Numeric task ID (`TASK_ID`), e.g. `042`
-- Task name slug (`TASK_NAME`), e.g. `Add_retry_logic`
-- Business value 1–10 (`BUSINESS_VALUE`)
-- Requirement clarity 1–10 (`REQUIREMENT_CLARITY`)
-- Severity (`SEVERITY`): `critical`, `major`, or `minor`
-- Effort Fibonacci 1–21 (`EFFORT`)
-- Reporter persona (`REPORTER`) in kebab-case, e.g. `backend-architect`
-- Assignees (`ASSIGNEES`) as YAML inline list values, e.g. `agent-alpha,HumanCaller`
+## Required Output
 
-For non-interactive mandatory project-layout runs (`TASK_ID=001`, `TASK_NAME=Project_layout`), do not ask follow-up questions.
-If values are missing, use deterministic defaults:
+The final output is one consolidated report aggregating results from all domain assert files.
 
-- `TASK_TYPE=chore`
-- `TASK_ID=001`
-- `TASK_NAME=Project_layout`
-- `BUSINESS_VALUE=8`
-- `REQUIREMENT_CLARITY=8`
-- `SEVERITY=major`
-- `EFFORT=5`
-- `REPORTER=project-template-scaffolder`
-- `ASSIGNEES=HumanCaller`
-
-## Checks Organization
-
-- Canonical check metadata: `asserts/backlog-checks.json`
-- Domain checks:
-    - `asserts/structure.json` — folder and file presence
-    - `asserts/task-content.json` — frontmatter and section compliance
-
-## Check Matrix
-
-### BKL-001: AI backlog root folder exists
-
-Pass when: `ai/` directory exists at project root. Verification: use `list_files_in_folder` on project root.
-
-### BKL-002: Tasks subfolder exists
-
-Pass when: `ai/tasks/` directory exists. Verification: use `list_files_in_folder` on `ai/`.
-
-### BKL-003: Task template folder present
-
-Pass when: `ai/tasks/000-Task_Template/` exists and contains all 15 phase files. Verification: use
-`list_files_in_folder` on `ai/tasks/000-Task_Template/`.
-
-### BKL-004: Frontmatter present in all phase files
-
-Pass when: every `.md` file in a task folder starts with a valid YAML frontmatter block containing all required
-attributes, including `reporter` in kebab-case and `assignees` as an inline YAML list of agent IDs or `HumanCaller`.
-Verification: use `get_file_text_by_path` on each file.
-
-### BKL-005: Section structure respected
-
-Pass when: every phase file contains an H1 title and the expected H2 sections.
-
-### BKL-006: Status values valid
-
-Pass when: `status` in every phase file frontmatter is one of `TODO`, `DOING`, `DONE`.
-
-### BKL-007: Effort uses Fibonacci scale
-
-Pass when: `effort` is one of `1, 2, 3, 5, 8, 13, 21`.
-
-## Severity Rules
-
-- `critical`: BKL-001, BKL-003, BKL-004
-- `major`: BKL-002, BKL-005
-- `minor`: BKL-006, BKL-007
-
-## Output Contract
-
-Return results in two parts:
+Return two parts:
 
 1. Human-readable summary table.
-2. Machine-readable JSON block.
+2. Machine-readable JSON:
 
 ```json
 {
   "overall": "PASS|FAIL",
+  "completion_token": "Project layout updated|Project layout deferred",
+  "deferred": false,
+  "all_required_artifacts_present": true,
+  "missing_artifacts": [],
   "checks": [
     {
       "id": "BKL-001",
@@ -200,8 +146,8 @@ Return results in two parts:
         {
           "path": "relative/path",
           "line": 0,
-          "matched_text": "exact or trimmed excerpt",
-          "expected": "what should exist"
+          "matched_text": "...",
+          "expected": "..."
         }
       ]
     }
@@ -209,66 +155,5 @@ Return results in two parts:
 }
 ```
 
-## Assessment Behavior
-
-- Prefer exact file evidence over assumptions.
-- If a check cannot be verified due to missing files, mark FAIL with explicit missing artifact reason.
-- Do not infer PASS from indirect signals when direct required evidence is absent.
-
-## Suggested Remediation Style
-
-For each failed check, provide:
-
-- Minimal patch target (exact file path).
-- One concrete fix suggestion.
-- A short validation command when applicable.
-
-## Companion Assets and Templates
-
-- Detection hints index: [asserts/backlog-checks.json](asserts/backlog-checks.json)
-- Domain checks (structure): [asserts/structure.json](asserts/structure.json)
-- Domain checks (task content): [asserts/task-content.json](asserts/task-content.json)
-- Goal
-  template: [templates/ai/tasks/000-Task_Template/1-goal.md.template](templates/ai/tasks/000-Task_Template/1-goal.md.template)
-- Design
-  template: [templates/ai/tasks/000-Task_Template/2-design.md.template](templates/ai/tasks/000-Task_Template/2-design.md.template)
-- Scenarii
-  template: [templates/ai/tasks/000-Task_Template/3-scenarii.md.template](templates/ai/tasks/000-Task_Template/3-scenarii.md.template)
-- Tests
-  template: [templates/ai/tasks/000-Task_Template/4-tests.md.template](templates/ai/tasks/000-Task_Template/4-tests.md.template)
-- Implementation
-  template: [templates/ai/tasks/000-Task_Template/5-implementation.md.template](templates/ai/tasks/000-Task_Template/5-implementation.md.template)
-- Refactor
-  template: [templates/ai/tasks/000-Task_Template/6-refactor.md.template](templates/ai/tasks/000-Task_Template/6-refactor.md.template)
-- Automation
-  template: [templates/ai/tasks/000-Task_Template/7-automation.md.template](templates/ai/tasks/000-Task_Template/7-automation.md.template)
-- Retrospective
-  template: [templates/ai/tasks/000-Task_Template/8-retrospective.md.template](templates/ai/tasks/000-Task_Template/8-retrospective.md.template)
-- Skills
-  template: [templates/ai/tasks/000-Task_Template/9-skills.md.template](templates/ai/tasks/000-Task_Template/9-skills.md.template)
-- Agents
-  template: [templates/ai/tasks/000-Task_Template/10-agents.md.template](templates/ai/tasks/000-Task_Template/10-agents.md.template)
-- Doc Promotion
-  template: [templates/ai/tasks/000-Task_Template/11-doc_promotion.md.template](templates/ai/tasks/000-Task_Template/11-doc_promotion.md.template)
-- Doc Explanation
-  template: [templates/ai/tasks/000-Task_Template/12-doc_explanation.md.template](templates/ai/tasks/000-Task_Template/12-doc_explanation.md.template)
-- Doc Reference
-  template: [templates/ai/tasks/000-Task_Template/13-doc_reference.md.template](templates/ai/tasks/000-Task_Template/13-doc_reference.md.template)
-- Doc How-To
-  template: [templates/ai/tasks/000-Task_Template/14-doc_howto.md.template](templates/ai/tasks/000-Task_Template/14-doc_howto.md.template)
-- Doc Tutorial
-  template: [templates/ai/tasks/000-Task_Template/15-doc_tutorial.md.template](templates/ai/tasks/000-Task_Template/15-doc_tutorial.md.template)
-- Placeholder examples: [templates/variables.example.env](templates/variables.example.env)
-
-Use this flow:
-
-1. Interactive mode: ask for required rendering inputs (`TASK_TYPE`, `TASK_ID`, `TASK_NAME`, `BUSINESS_VALUE`, `REQUIREMENT_CLARITY`,
-   `SEVERITY`, `EFFORT`, `REPORTER`, `ASSIGNEES`).
-2. Non-interactive mandatory mode (`001-Project_layout`): apply defaults above and do not ask questions.
-3. Copy `000-Task_Template/` to `ai/tasks/{{TASK_ID}}-{{TASK_NAME}}/` using `create_new_file_with_text`.
-4. Replace `{{...}}` variables in all phase files using `replace_file_text_by_path`.
-5. Ensure phase files are created/verified in deterministic order: `1-goal.md` ... `15-doc_tutorial.md`.
-6. Load `asserts/backlog-checks.json` using `get_file_text_by_path`, then evaluate each domain file and all checks from
-   `BKL-001` to `BKL-007` with
-   file-backed evidence.
-
+- Emit `Project layout updated` only when all required files are verified with direct evidence after writes.
+- Emit `Project layout deferred` when `deferred=true`, `missing_artifacts` is non-empty, or verification is partial.

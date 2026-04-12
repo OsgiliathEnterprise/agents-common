@@ -1,0 +1,54 @@
+{
+  "checks": [
+    {
+      "id": "FND-001",
+      "title": "Gradle build can compile Java",
+      "severity": "critical"
+    },
+    {
+      "id": "FND-002",
+      "title": "Settings.gradle.kts exists and is configured",
+      "severity": "critical"
+    },
+    {
+      "id": "FND-003",
+      "title": "CI/CD workflow files exist in .github/workflows/",
+      "severity": "major"
+    },
+    {
+      "id": "FND-004",
+      "title": "JReleaser configuration exists and is valid",
+      "severity": "major"
+    },
+    {
+      "id": "FND-005",
+      "title": "Version catalog (gradle/libs.versions.toml) exists",
+      "severity": "minor"
+    },
+    {
+      "id": "FND-006",
+      "title": "Cucumber BDD test infrastructure exists",
+      "severity": "major"
+    },
+    {
+      "id": "FND-006.1",
+      "title": "CucumberSpringConfiguration.java exists",
+      "severity": "major"
+    },
+    {
+      "id": "FND-006.2",
+      "title": "CucumberTestRunner.java exists",
+      "severity": "major"
+    },
+    {
+      "id": "FND-006.3",
+      "title": "cucumber.properties file exists",
+      "severity": "minor"
+    },
+    {
+      "id": "FND-006.4",
+      "title": "Dependencies for Cucumber exist in build.gradle.kts",
+      "severity": "major"
+    }
+  ]
+}

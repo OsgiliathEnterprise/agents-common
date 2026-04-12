@@ -1,6 +1,6 @@
 {
   "skill": "project-root-fundamentals-assessor",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "placeholder_format": "{{VARIABLE_NAME}}",
   "template_files": [
     "templates/build.gradle.kts.template",
@@ -10,21 +10,20 @@
     "templates/src/test/java/cucumber/CucumberTestRunner.java.template",
     "templates/src/test/java/cucumber/CucumberSpringConfiguration.java.template"
   ],
-  "asset_files": [
-    "assets/cucumber.properties",
-    "assets/src/test/resources/cucumber.properties",
-    "assets/src/test/resources/features/sample.feature",
-    "assets/src/test/resources/dataset/config.json",
-    "assets/.github/dependabot.yml",
-    "assets/.github/workflows/ci.yml",
-    "assets/.github/workflows/release.yml",
-    "assets/.github/workflows/release-draft.yml"
-  ],
-  "domain_files": [
-    "asserts/build.json",
-    "asserts/tests.json",
-    "asserts/ci.json",
-    "asserts/release.json"
-  ]
+  "output_contract": {
+    "success_token": "Project layout updated",
+    "deferred_token": "Project layout deferred",
+    "checks": [
+      {
+        "id": "FND-OUT-001",
+        "severity": "critical",
+        "rule": "Emit success_token only when all required artifacts are present and verified in-run."
+      },
+      {
+        "id": "FND-OUT-002",
+        "severity": "critical",
+        "rule": "If deferred=true or missing_artifacts is non-empty, never emit success_token and emit deferred_token instead."
+      }
+    ]
+  }
 }
-

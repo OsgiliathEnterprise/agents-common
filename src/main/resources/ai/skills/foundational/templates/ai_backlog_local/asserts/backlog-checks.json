@@ -1,6 +1,6 @@
 {
   "skill": "ai-backlog-local-lifecycle-manager",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "placeholder_format": "{{VARIABLE_NAME}}",
   "template_files": [
     "templates/ai/tasks/000-Task_Template/1-goal.md.template",
@@ -20,9 +20,20 @@
     "templates/ai/tasks/000-Task_Template/15-doc_tutorial.md.template"
   ],
   "asset_files": [],
-  "domain_files": [
-    "asserts/structure.json",
-    "asserts/task-content.json"
-  ]
+  "output_contract": {
+    "success_token": "Project layout updated",
+    "deferred_token": "Project layout deferred",
+    "checks": [
+      {
+        "id": "BKL-OUT-001",
+        "severity": "critical",
+        "rule": "Emit success_token for 001-Project_layout only when all required files and task folder are verified with direct evidence after writes."
+      },
+      {
+        "id": "BKL-OUT-002",
+        "severity": "critical",
+        "rule": "If deferred=true, missing_artifacts is non-empty, or verification is partial, do not emit success_token and emit deferred_token instead."
+      }
+    ]
+  }
 }
-

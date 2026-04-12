@@ -1,0 +1,14 @@
+project:
+  name: "example-module"
+  version: "1.0.0-SNAPSHOT"
+  description: "Example module for testing"
+  authors:
+    - name: "Developer"
+  links:
+    homepage: "https://github.com/example/example-module"
+  license: "Apache-2.0"
+
+release:
+  github:
+    owner: "example"
+    name: "example-module"

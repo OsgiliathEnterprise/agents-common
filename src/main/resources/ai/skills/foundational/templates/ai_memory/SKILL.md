@@ -1,59 +1,92 @@
 ---
 name: ai_memory
 description: You are an assistant with a personal memory stored in `<projectroot>/ai/MEMORY.md`. You use this memory to keep track of session status, failed attempts, explicit corrections, and completed tasks.
-tools: [ "get_file_text_by_path", "create_new_file_with_text", "replace_file_text_by_path" ]
+tools: [ "list_files_in_folder", "create_directory", "get_file_text_by_path", "create_new_file_with_text", "replace_file_text_by_path", "write_file", "directory_tree" ]
 ---
 
 # Skill: AI Memory Manager
 
+## Description
+
+Manages a persistent session-scoped memory file at `ai/MEMORY.md` under the project root. Tracks current status, failed
+attempts, explicit corrections, and completed tasks across apply passes.
+
 ## Quick Reference
 
-| Action  | Tool Action                 | Purpose                                                                    |
-|---------|-----------------------------|----------------------------------------------------------------------------|
-| Read    | `get_file_text_by_path`     | Read the current memory.                                                   |
-| Add     | `create_new_file_with_text` | Create the memory file if it doesn't exist, or replace its entire content. |
-| Replace | `replace_file_text_by_path` | Replace the entire content of the memory file with updated version.        |
+| Need                            | Source                       |
+|---------------------------------|------------------------------|
+| Check definitions (MEM-001–004) | `asserts/memory-checks.json` |
 
-## Memory File Format
+## Required Inputs
 
-- **Location**: `ai/MEMORY.md` (relative to project root)
-- **Max Length**: 2000 characters.
-- **Delimiter**: Sections are separated by the `§` (section sign) delimiter.
+- Project root path (to resolve `ai/MEMORY.md`).
+- Content to record: current status, correction, or completed task entry.
+- For non-interactive apply passes: a fresh UUID chat-memory id (format: `apply-pass-<uuid-v4>`).
 
-## Content to Remember
+Non-interactive runs must not ask follow-up questions; apply a read-modify-write update directly.
 
-1. **Current status**: Graph nodes traversed, statements refined, responses, etc.
-2. **Temporary ADRs/Attempts**: Logic or approaches that were tried but failed.
-3. **Explicit corrections**: Any corrections or preferences explicitly stated by the user.
-4. **Completed tasks**: A record of what has been successfully achieved.
+## Explanation
 
-## Usage Guidelines
+- **Location**: `ai/MEMORY.md` relative to project root.
+- **Max length**: 2000 characters total; skip trivial or easily re-discoverable facts.
+- **Delimiter**: Sections are separated by `§` (section sign).
+- **Chat-memory id**: Use a UUID-backed id per non-interactive apply pass; reset pass-local state before touching the
+  file; never reuse a previous pass id.
+- **Durable vs. ephemeral**: `ai/MEMORY.md` is the durable store; pass-local chat memory is ephemeral.
 
-- **Keep it concise**: Do not exceed 2000 characters in total.
-- **Skip trivial tasks**: Do not store easily rediscovered facts or very simple actions.
-- **Sectioning**: Use the `§` delimiter between distinct memory entries.
-- **Self-Monitoring**: Be aware of the current character count and usage percentage to manage capacity.
-- **Persistence**: Always read the memory file first using `get_file_text_by_path` before updating it.
-- **Determinism**: In non-interactive runs, do not ask follow-up questions; apply a read-modify-write update to `ai/MEMORY.md` directly.
+**Content categories:**
 
-## Verification Flow
+1. Current status: graph nodes traversed, statements refined, responses.
+2. Temporary ADRs/attempts: logic or approaches tried but failed.
+3. Explicit corrections: preferences explicitly stated by the user.
+4. Completed tasks: a record of successfully achieved work.
 
-Callers must delegate all `ai/MEMORY.md` existence checks to this skill — **do not inline this logic in agents**.
+## Process
 
-1. Attempt to read `ai/MEMORY.md` using `get_file_text_by_path`.
-2. If the file does not exist, initialize it with `create_new_file_with_text` using an empty structure
-   (at minimum a single `§` section header and a "Current status: initialized" entry).
-3. For any subsequent update, always re-read the file first, apply the in-memory modification, then write
-   the entire updated content back with `replace_file_text_by_path`.
-4. Keep updates deterministic: never partially overwrite — always replace the whole file content.
+1. Ensure `ai/` exists; create it if missing.
+2. For non-interactive apply passes, generate a fresh UUID chat-memory id and reset pass-local chat state.
+3. Read `ai/MEMORY.md` via `get_file_text_by_path`.
+4. If not found (ENOENT), initialize with `create_new_file_with_text` using a minimal structure: one `§` header and
+   `Current status: initialized`. Create a backlog task for this initialization event (use ai_backlog skill).
+5. For any update: re-read, apply the modification in memory, write the entire updated content back via
+   `replace_file_text_by_path`. Never partially overwrite.
+6. Keep total content ≤ 2000 characters.
+7. After each write, re-read `ai/MEMORY.md` and confirm non-empty content before reporting success.
 
-## Tool Actions
+Never copy `asserts/` files into target projects.
 
-### `create_new_file_with_text(path: "ai/MEMORY.md", text: String)`
+## Mandatory completion task
 
-Initializes the memory file with the provided content.
+Evaluate results against `asserts/*.json`
 
-### `replace_file_text_by_path(path: "ai/MEMORY.md", text: String)`
+## Required Output
 
-Updates the memory file by replacing its entire content. Use this to add, replace, or remove entries by first reading
-the file, modifying the text in memory, and then writing it back.
+The final output is one consolidated report for all memory checks.
+
+```json
+{
+  "overall": "PASS|FAIL",
+  "completion_token": "Memory initialized|Memory deferred",
+  "deferred": false,
+  "checks": [
+    {
+      "id": "MEM-001",
+      "title": "Memory parent directory exists",
+      "status": "PASS|FAIL",
+      "severity": "critical",
+      "reason": "Short explanation",
+      "evidence": [
+        {
+          "path": "ai/",
+          "matched_text": "...",
+          "expected": "directory present"
+        }
+      ]
+    }
+  ]
+}
+```
+
+- Emit `Memory initialized` only after `ai/MEMORY.md` is verified non-empty by direct re-read.
+- Emit `Memory deferred` if the file is missing or empty post-write.
+

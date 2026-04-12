@@ -4,19 +4,19 @@ langchain4j:
   open-ai:
     chat-model:
       base-url: http://127.0.0.1:1234/v1
-      model-name: ibm/granite-4-h-tiny
+      model-name: gemma-4-26b-a4b-it
       log-requests: true
       log-responses: true
-      timeout: 20s
+      timeout: 9000s
       api-key: sk-lm-4LjIq0cR:VIueSQJU4lohBUvy7LUu
       supported-capabilities: response_format_json_schema
       strict-json-schema: true
     streaming-chat-model:
       base-url: http://127.0.0.1:1234/v1
-      model-name: ibm/granite-4-h-tiny
+      model-name: gemma-4-26b-a4b-it
       log-requests: true
       log-responses: true
-      timeout: 20s
+      timeout: 9000s
       api-key: sk-lm-4LjIq0cR:VIueSQJU4lohBUvy7LUu
 
 # Application Configuration
@@ -49,22 +49,22 @@ codeprompt:
     default-vendor: openai
     default-base-url: http://127.0.0.1:1234/v1
     default-api-key: sk-lm-4LjIq0cR:VIueSQJU4lohBUvy7LUu
-    default-timeout: 20s
+    default-timeout: 120s
     kinds:
       thinking:
-        model-name: ibm/granite-4-h-tiny
+        model-name: gemma-4-26b-a4b-it
       nano:
-        model-name: ibm/granite-4-h-tiny
+        model-name: gemma-4-26b-a4b-it
       mini:
-        model-name: ibm/granite-4-h-tiny
+        model-name: gemma-4-26b-a4b-it
       medium:
-        model-name: ibm/granite-4-h-tiny
+        model-name: gemma-4-26b-a4b-it
       big:
-        model-name: ibm/granite-4-h-tiny
+        model-name: gemma-4-26b-a4b-it
       super:
-        model-name: ibm/granite-4-h-tiny
+        model-name: gemma-4-26b-a4b-it
       maxi:
-        model-name: ibm/granite-4-h-tiny
+        model-name: qgemma-4-26b-a4b-it
   mcp:
     tools:
       aliases:
@@ -90,10 +90,10 @@ codeprompt:
           # Filesystem Tools (Only works within allowed directories, typically a sandboxed environment for security. Always check the documentation for your specific agent implementation to understand the exact filesystem access rules and limitations.)
           - create_directory # Create a new directory or ensure a directory exists. Can create multiple nested directories in one operation. If the directory already exists, this operation will succeed silently. Perfect for setting up directory structures for projects or ensuring required paths exist. Only works within allowed directories.
         directory_tree:
-          # JetBrains
-          - list_directory_tree_in_folder # Provides a hierarchical tree view of the project directory structure
           # Filesystem Tools (Only works within allowed directories, typically a sandboxed environment for security. Always check the documentation for your specific agent implementation to understand the exact filesystem access rules and limitations.)
           - directory_tree # Get a recursive tree view of files and directories as a JSON structure. Each entry includes 'name', 'type' (file/directory), and 'children' for directories. Files have no children array, while directories always have a children array (which may be empty). The output is formatted with 2-space indentation for readability. Only works within allowed directories.
+          # JetBrains
+          - list_directory_tree_in_folder # Provides a hierarchical tree view of the project directory structure
         edit_file:
           # Filesystem Tools (Only works within allowed directories, typically a sandboxed environment for security. Always check the documentation for your specific agent implementation to understand the exact filesystem access rules and limitations.)
           - edit_file # Make line-based edits to a text file. Each edit replaces exact line sequences with new content. Returns a git-style diff showing the changes made. Only works within allowed directories.
@@ -104,10 +104,10 @@ codeprompt:
           # Filesystem Tools (Only works within allowed directories, typically a sandboxed environment for security. Always check the documentation for your specific agent implementation to understand the exact filesystem access rules and limitations.)
           - list_allowed_directories # Returns the list of directories that this server is allowed to access. Use this to understand which directories are available before trying to access files.
         list_directory:
-          # JetBrains
-          - list_files_in_folder # Lists all files and directories in the specified project folder
           # Filesystem Tools (Only works within allowed directories, typically a sandboxed environment for security. Always check the documentation for your specific agent implementation to understand the exact filesystem access rules and limitations.)
           - list_directory # Get a detailed listing of all files and directories in a specified path. Results clearly distinguish between files and directories with [FILE] and [DIR] prefixes. This tool is essential for understanding directory structure and finding specific files within a directory. Only works within allowed directories.
+          # JetBrains
+          - list_files_in_folder # Lists all files and directories in the specified project folder
         move_file:
           # Filesystem Tools (Only works within allowed directories, typically a sandboxed environment for security. Always check the documentation for your specific agent implementation to understand the exact filesystem access rules and limitations.)
           - move_file # Move or rename files and directories. Can move files between directories and rename them in a single operation. If the destination exists, the operation will fail. Works across different directories and can be used for simple renaming within the same directory. Both source and destination must be within allowed directories.
@@ -162,6 +162,8 @@ codeprompt:
           # Git (Reference)
           - git_status # Shows the working tree status
         create_new_file_with_text:
+          # Filesystem Tools (headless-safe default for tests)
+          - write_file # Create a new file or completely overwrite an existing file with new content.
           # JetBrains
           - create_new_file_with_text # Creates a new file at the specified path within the project directory and populates it with the provided text
         execute_action_by_id:
@@ -176,6 +178,11 @@ codeprompt:
         find_files_by_name_substring:
           # JetBrains
           - find_files_by_name_substring # Searches for all files in the project whose names contain the specified substring
+        list_files_in_folder:
+          # Filesystem Tools (headless-safe default for tests)
+          - list_directory # Get a detailed listing of all files and directories in a specified path.
+          # JetBrains
+          - list_files_in_folder # Lists all files and directories in the specified project folder
         get_all_open_file_paths:
           # JetBrains
           - get_all_open_file_paths # Lists full path relative paths to project root of all currently open files
@@ -186,6 +193,8 @@ codeprompt:
           # JetBrains
           - get_debugger_breakpoints # Retrieves a list of all line breakpoints currently set in the project
         get_file_text_by_path:
+          # Filesystem Tools (headless-safe default for tests)
+          - read_file # Read the complete contents of a file from the file system.
           # JetBrains
           - get_file_text_by_path # Retrieves the text content of a file using its path relative to project root
         get_open_in_editor_file_path:
@@ -222,6 +231,8 @@ codeprompt:
           # JetBrains
           - replace_current_file_text # Replaces the entire content of the currently active file
         replace_file_text_by_path:
+          # Filesystem Tools (headless-safe default for tests)
+          - edit_file # Make line-based edits to a text file.
           # JetBrains
           - replace_file_text_by_path # Replaces the entire content of a specified file with new text
         replace_selected_text:

@@ -1,0 +1,29 @@
+{
+  "checks": [
+    {
+      "id": "MEM-001",
+      "title": "Memory parent directory (ai/) exists",
+      "severity": "critical"
+    },
+    {
+      "id": "MEM-002",
+      "title": "ai/MEMORY.md file exists and is non-empty",
+      "severity": "critical"
+    },
+    {
+      "id": "MEM-003",
+      "title": "MEMORY.md uses section delimiter (§) between entries",
+      "severity": "minor"
+    },
+    {
+      "id": "MEM-004",
+      "title": "MEMORY.md content does not exceed 2000 characters",
+      "severity": "major"
+    },
+    {
+      "id": "MEM-005",
+      "title": "MEMORY.md tracks current status, failed attempts, corrections, and completed tasks",
+      "severity": "minor"
+    }
+  ]
+}

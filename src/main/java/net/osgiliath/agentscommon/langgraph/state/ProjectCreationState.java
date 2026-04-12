@@ -15,6 +15,7 @@ public class ProjectCreationState extends WorspaceState<ChatMessage> {
 
     public static final String PROJECT_LAYOUT_DONE_CHANNEL = "projectLayoutDone";
     public static final String PROJECT_LAYOUT_UPDATE_DATE_CHANNEL = "projectLayoutUpdateDate";
+    public static final String PROJECT_LAYOUT_COMMAND_CHANNEL = "projectLayoutCommand";
     /**
      * Set to {@code true} by {@code ProjectStructureMonitorNode} when the user has confirmed
      * an update request, so the graph can route to the applier node in the same turn.
@@ -40,6 +41,7 @@ public class ProjectCreationState extends WorspaceState<ChatMessage> {
         Map<String, Channel<?>> schema = new HashMap<>(WorspaceState.SCHEMA);
         schema.put(PROJECT_LAYOUT_DONE_CHANNEL, Channels.base((Boolean currentValue, Boolean newValue) -> newValue, () -> false));
         schema.put(PROJECT_LAYOUT_UPDATE_DATE_CHANNEL, Channels.base((OffsetDateTime currentValue, OffsetDateTime newValue) -> newValue));
+        schema.put(PROJECT_LAYOUT_COMMAND_CHANNEL, Channels.base((String currentValue, String newValue) -> newValue));
         schema.put(PENDING_LAYOUT_UPDATE_CHANNEL, Channels.base((Boolean currentValue, Boolean newValue) -> newValue, () -> false));
         schema.put(LAYOUT_UPDATE_PROPOSAL_CHANNEL, Channels.base((Boolean currentValue, Boolean newValue) -> newValue, () -> false));
         return schema;
@@ -51,6 +53,10 @@ public class ProjectCreationState extends WorspaceState<ChatMessage> {
 
     public Optional<OffsetDateTime> projectLayoutUpdateDate() {
         return this.value(PROJECT_LAYOUT_UPDATE_DATE_CHANNEL);
+    }
+
+    public Optional<String> projectLayoutCommand() {
+        return this.value(PROJECT_LAYOUT_COMMAND_CHANNEL);
     }
 
     public Optional<Boolean> pendingLayoutUpdate() {
