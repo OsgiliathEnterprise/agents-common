@@ -1,7 +1,7 @@
 ---
 name: ai_backlog_local
 description: You are an assistant managing the AI task lifecycle backlog with a structured folder layout under the project root `ai/` directory, ensuring each task follows a phased workflow from goal through documentation.
-tools: [ "list_files_in_folder", "create_directory", "get_file_text_by_path", "create_new_file_with_text", "replace_file_text_by_path", "write_file", "directory_tree" ]
+tools: [ "list_files_in_folder", "create_directory", "get_file_text_by_path", "create_new_file_with_text", "replace_file_text_by_path", "write_file", "directory_tree", "read_multiple_files", "search_files" ]
 ---
 
 # Skill: AI Local Backlog Lifecycle Manager
@@ -105,15 +105,33 @@ All structural and content checks are defined in `asserts/.json`. Never copy `as
 
 ## Process
 
+### Initial project layout setup (Task 001)
+
 1. For interactive mode: gather all required inputs (see Required Inputs).
 2. If `ai/` or `ai/tasks/` is missing, create these directories first.
 3. Create a `<projectdir>/ai/tasks/001-Project_layout/*` folder if it doesn't exists.
-4. Instantiate tasks from template (clone them, without the suffix) with `write_file`.
+4. Instantiate tasks from template (clone them, without the suffix) with `write_file` or equivalent, stick to these 15
+   files.
 5. Replace `{{...}}` variables in all 15 phases files tasks of `ai/tasks/001-Project_layout/*.md` using
-   `replace_file_text_by_path`, ensure the frontmatter is correctly filled.
+   `replace_file_text_by_path` or equivalent, ensure the frontmatter is correctly filled.
 6. Fill the actions description on each tickets based on everything that happened everything.
 
 NEVER copy `asserts/` files into the target project.
+
+### Updates and maintenance (Tasks 002+)
+
+- For `validate` and `resync dryRun=true`: run checks and report results without modifying files.
+- For `resync dryRun=false`: apply only the necessary changes for failed checks:
+    - If a new task is initialized (unrelated to previously filled requirement), create a new task folder and tasks
+      files from the
+      template with the correct naming convention and fill
+      the frontmatter.
+    - If there is a current action being done (e.g. `status: DOING`), update the corresponding phase file with the new
+      content and update the `updated` timestamp in the frontmatter. Also look and `ai/MEMORY.md` for any relevant
+      information to add to the phase file.
+    - if a task is completed, update the corresponding phase file with the new content, set `status: DONE`, and update
+      the `updated` timestamp in the frontmatter. Also look and `ai/MEMORY.md` for any relevant information to add to
+      the phase file.
 
 ## Mandatory completion task
 

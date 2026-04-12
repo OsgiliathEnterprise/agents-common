@@ -1,7 +1,7 @@
 ---
 name: ai_memory
 description: You are an assistant with a personal memory stored in `<projectroot>/ai/MEMORY.md`. You use this memory to keep track of session status, failed attempts, explicit corrections, and completed tasks.
-tools: [ "list_files_in_folder", "create_directory", "get_file_text_by_path", "create_new_file_with_text", "replace_file_text_by_path", "write_file", "directory_tree" ]
+tools: [ "list_files_in_folder", "create_directory", "get_file_text_by_path", "create_new_file_with_text", "replace_file_text_by_path", "write_file", "directory_tree", "read_multiple_files", "search_files" ]
 ---
 
 # Skill: AI Memory Manager
@@ -43,10 +43,13 @@ Non-interactive runs must not ask follow-up questions; apply a read-modify-write
 
 ## Process
 
+### Creation/Initialization
+
 1. Ensure `ai/` exists; create it if missing.
 2. For non-interactive apply passes, generate a fresh UUID chat-memory id and reset pass-local chat state.
 3. Read `ai/MEMORY.md` via `get_file_text_by_path`.
-4. If not found (ENOENT), initialize with `create_new_file_with_text` using a minimal structure: one `§` header and
+4. If not found (ENOENT), initialize with `create_new_file_with_text` or equivalent using a minimal structure: one `§`
+   header and
    `Current status: initialized`. Create a backlog task for this initialization event (use ai_backlog skill).
 5. For any update: re-read, apply the modification in memory, write the entire updated content back via
    `replace_file_text_by_path`. Never partially overwrite.
@@ -54,6 +57,13 @@ Non-interactive runs must not ask follow-up questions; apply a read-modify-write
 7. After each write, re-read `ai/MEMORY.md` and confirm non-empty content before reporting success.
 
 Never copy `asserts/` files into target projects.
+
+### Usage
+
+- Wrap conscise memory updates around significant events: new graph nodes, refined statements, failed attempts, explicit
+  corrections, and completed tasks. Also include choices made among alternatives.
+- For failed attempts, record the approach tried and the failure reason.
+- For explicit corrections, record the user’s stated preference and any relevant context.
 
 ## Mandatory completion task
 

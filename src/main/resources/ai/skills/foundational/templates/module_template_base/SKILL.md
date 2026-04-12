@@ -1,7 +1,7 @@
 ---
 name: module_template_base
 description: You are an assistant ensuring the project layout is respected and setup properly with  Gradle setup, BDD tests, and proper CICD
-tools: [ "list_files_in_folder", "create_directory", "get_file_text_by_path", "create_new_file_with_text", "write_file", "directory_tree" ]
+tools: [ "list_files_in_folder", "create_directory", "get_file_text_by_path", "create_new_file_with_text", "write_file", "directory_tree", "read_multiple_files", "search_files" ]
 ---
 
 # Skill: Project Root Fundamentals Assessor
@@ -64,12 +64,28 @@ All checks are defined in `asserts/*.json`. Never copy `asserts/` files into tar
 
 ## Process
 
+### New project setup:
+
 1. For interactive mode: gather required inputs (see Required Inputs).
 2. For `resync dryRun=false`: skip questions; apply defaults; preserve existing files where possible.
 3. Create any missing parent directories (`gradle/`, `.github/`, `.github/workflows/`) before writing files.
-4. Generate scaffold files from templates by replacing `{{...}}` variables using `create_new_file_with_text`.
-5. Copy static assets as-is using `create_new_file_with_text`.
-6. Apply `assets/*` and hydrated `templates/*` on the target project.
+4. Generate scaffold files from templates by replacing `{{...}}` variables using `create_new_file_with_text` or
+   equivalent.
+5. Copy static assets as-is using `create_new_file_with_text` or equivalent.
+6. Apply `assets/**/*` and hydrated `templates/**/*` on the target project.
+
+Never copy `asserts/` into the target project.
+
+### Updates and maintenance:
+
+- For `validate` and `resync dryRun=true`: run checks and report results without modifying files.
+- For `resync dryRun=false`: apply only the necessary scaffold changes for failed checks:
+    - If a required artifact is missing, create it from the corresponding template or asset.
+    - If a capability check fails but the artifact is present, do not modify the file; report the failure for manual
+      resolution.
+    - Do not modify existing file with user moified content; report any check failures with file evidence for manual
+      resolution.
+    - For dependency version updates, update the version catalog template and regenerate the `libs.versions.toml` file.
 
 Never copy `asserts/` into the target project.
 

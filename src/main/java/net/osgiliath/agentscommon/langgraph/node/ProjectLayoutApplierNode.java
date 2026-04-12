@@ -55,7 +55,7 @@ public class ProjectLayoutApplierNode implements NodeAction<ProjectCreationState
 
     private static final Logger log = LoggerFactory.getLogger(ProjectLayoutApplierNode.class);
     private static final int MAX_BASE_REQUEST_CHARS = 29_000;
-    private static final int MAX_TOOL_ITERATIONS = 100;
+    private static final int MAX_TOOL_ITERATIONS = 200;
     // Retry cap per command execution loop.
     private static final int MAX_APPLY_PASSES = 50;
     private static final String DEFERRED_MARKER = "deferred:";
@@ -105,7 +105,7 @@ public class ProjectLayoutApplierNode implements NodeAction<ProjectCreationState
                 : "";
         return String.format(
                 "mode=apply targetPath=%s dryRun=false reporter=project-template-scaffolder assignees=[HumanCaller] businessValue=8 requirementClarity=8 severity=major effort=5%n%n"
-                        + "Apply all project layout skills now (module template, AI backlog, and AI memory). "
+                        + "Apply all project layout skills now (module template, AI backlog, and AI memory), and Ensure skills agent assertions are passing.. "
                         + "%s"
                         + "If work remains after this pass, respond with '" + NEED_MORE_ITERATION_MARKER + " <reason>'. "
                         + "Do not ask for additional inputs - apply all changes immediately.",
@@ -120,11 +120,9 @@ public class ProjectLayoutApplierNode implements NodeAction<ProjectCreationState
         return String.format(
                 "mode=resync targetPath=%s dryRun=false%n%n"
                         + "Update this project to the latest conventions. "
-                        + "Ensure all required module-template-base files (build.gradle.kts, "
-                        + "settings.gradle.kts, jreleaser.yml, gradle/libs.versions.toml, "
-                        + ".github/dependabot.yml, .github/workflows/ci.yml), "
-                        + "ai backlog structure (ai/tasks/001-Project_layout/ with all phase files), "
-                        + "and ai memory (ai/MEMORY.md) are created or refreshed. "
+                        + "Ensure all required module-template-base files,"
+                        + "ai backlog structure, "
+                        + "and ai memory are created or refreshed, and Ensure skills agent assertions are passing."
                         + "%s"
                         + "If work remains after this pass, respond with '" + NEED_MORE_ITERATION_MARKER + " <reason>'. "
                         + "Do not ask for additional inputs – apply all changes immediately.",
@@ -179,8 +177,8 @@ public class ProjectLayoutApplierNode implements NodeAction<ProjectCreationState
 
         String pendingReason = "layout update still pending";
 
+        String chatMemoryId = sessionContext.sessionId() + "-" + UUID.randomUUID();
         for (int applyPass = 1; applyPass <= MAX_APPLY_PASSES; applyPass++) {
-            String chatMemoryId = sessionContext.sessionId() + "-pass-" + applyPass + "-" + UUID.randomUUID();
             log.debug("Starting {} loop {} with fresh chat memory id {}", command.externalName(), applyPass, chatMemoryId);
 
             if (command.requiresApplyPhase()) {

@@ -49,7 +49,7 @@ codeprompt:
     default-vendor: openai
     default-base-url: http://127.0.0.1:1234/v1
     default-api-key: sk-lm-4LjIq0cR:VIueSQJU4lohBUvy7LUu
-    default-timeout: 120s
+    default-timeout: 250s
     kinds:
       thinking:
         model-name: gemma-4-26b-a4b-it

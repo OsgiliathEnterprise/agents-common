@@ -168,7 +168,7 @@ public class ProjectStructureAuditorNode implements NodeAction<ProjectCreationSt
                 "mode=validate targetPath=%s dryRun=true%n%n"
                         + "Use tools to inspect the filesystem and return ONLY JSON with fields: "
                         + "bkl001Exists(boolean), mtb001Exists(boolean), mem001Exists(boolean), projectLayoutTaskExists(boolean), projectLayoutLastUpdatedAt(string|null), projectStructureCompliant(boolean), missingRequiredFiles(string[]), needsUpdate(boolean), reason(string). "
-                        + "Set projectStructureCompliant=false if required layout files are missing (build.gradle.kts, settings.gradle.kts, jreleaser.yml, gradle/libs.versions.toml, .github/dependabot.yml, .github/workflows/ci.yml, ai/MEMORY.md). "
+                        + "Set projectStructureCompliant=false if required layout files are missing. "
                         + "Set needsUpdate=true if BKL-001 fails, if MTB-001 fails, if MEM-001 fails, if projectStructureCompliant=false, or if last update is older than 10 days.",
                 cwd);
 
