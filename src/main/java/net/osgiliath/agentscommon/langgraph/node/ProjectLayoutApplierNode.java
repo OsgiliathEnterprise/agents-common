@@ -1,5 +1,7 @@
 package net.osgiliath.agentscommon.langgraph.node;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.langchain4j.agent.tool.ToolExecutionRequest;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
@@ -54,8 +56,10 @@ import java.util.regex.Pattern;
 public class ProjectLayoutApplierNode implements NodeAction<ProjectCreationState> {
 
     private static final Logger log = LoggerFactory.getLogger(ProjectLayoutApplierNode.class);
-    private static final int MAX_BASE_REQUEST_CHARS = 29_000;
+    private static final ObjectMapper TOOL_SIGNATURE_MAPPER = new ObjectMapper();
     private static final int MAX_TOOL_ITERATIONS = 200;
+    private static final int MAX_REPEAT_PER_TOOL_CALL = 2;
+    private static final int TOOL_CALL_HISTORY_LIMIT = 200;
     // Retry cap per command execution loop.
     private static final int MAX_APPLY_PASSES = 50;
     private static final String DEFERRED_MARKER = "deferred:";
@@ -150,14 +154,10 @@ public class ProjectLayoutApplierNode implements NodeAction<ProjectCreationState
         SessionContext sessionContext = state.<SessionContext>value(AcpState.SESSION_CONTEXT)
                 .orElse(SessionContext.empty());
 
-        String assistantReply = "Project layout updated";
-        boolean deferred = false;
-
         String cwd = sessionContext.cwd();
         if (".".equals(cwd)) {
             log.warn("No workspace cwd in session context – skipping layout apply");
-            assistantReply = deferredReply("no workspace cwd in session context");
-            return Map.of("messages", AiMessage.from(assistantReply));
+            return Map.of("messages", AiMessage.from(deferredReply("no workspace cwd in session context")));
         }
 
         log.info("Applying project layout via LLM agent for workspace: {}", cwd);
@@ -167,75 +167,88 @@ public class ProjectLayoutApplierNode implements NodeAction<ProjectCreationState
             agent = agentParser.getAgent(agentFileResource);
         } catch (Exception e) {
             log.error("Unable to load project-template-scaffolder agent", e);
-            assistantReply = deferredReply("unable to load project-template-scaffolder agent");
-            return Map.of("messages", AiMessage.from(assistantReply));
+            return Map.of("messages", AiMessage.from(deferredReply("unable to load project-template-scaffolder agent")));
         }
 
         InvocationParameters invocationParameters = InvocationParameters.from("cwd", cwd);
         ProjectLayoutCommand command = resolveCommand(state);
         log.info("Project layout command '{}' selected for workspace {}", command.externalName(), cwd);
 
+        String chatMemoryId = sessionContext.sessionId() + "-" + UUID.randomUUID();
+        log.debug("Starting {} with fresh chat memory id {}", command.externalName(), chatMemoryId);
+
+        String pendingReason = "layout update still pending";
+        for (int applyPass = 1; applyPass <= MAX_APPLY_PASSES; applyPass++) {
+            log.debug("Starting {} loop {}", command.externalName(), applyPass);
+            IterationResult result = runIteration(agent, chatMemoryId, invocationParameters, cwd, applyPass, command);
+            if (result instanceof IterationResult.Done(var stateUpdate)) {
+                return stateUpdate;
+            }
+            pendingReason = ((IterationResult.Continue) result).pendingReason();
+        }
+
+        return Map.of("messages", AiMessage.from(deferredReply(
+                "project layout apply did not converge after " + MAX_APPLY_PASSES + " pass(es): " + pendingReason)));
+    }
+
+    private IterationResult runIteration(Agent agent,
+                                         String chatMemoryId,
+                                         InvocationParameters invocationParameters,
+                                         String cwd,
+                                         int applyPass,
+                                         ProjectLayoutCommand command) {
+        boolean needsMoreIteration = false;
         String pendingReason = "layout update still pending";
 
-        String chatMemoryId = sessionContext.sessionId() + "-" + UUID.randomUUID();
-        for (int applyPass = 1; applyPass <= MAX_APPLY_PASSES; applyPass++) {
-            log.debug("Starting {} loop {} with fresh chat memory id {}", command.externalName(), applyPass, chatMemoryId);
-
-            if (command.requiresApplyPhase()) {
-                PassOutcome applyOutcome = runCommandPass(
-                        agent,
-                        chatMemoryId,
-                        invocationParameters,
-                        cwd,
-                        applyPass,
-                        command);
-                log.info("Apply loop pass {} command '{}' outcome: [status={}, reason={}]",
-                        applyPass, command.externalName(), applyOutcome.status(), applyOutcome.reason());
-                if (applyOutcome.isDeferred()) {
-                    assistantReply = deferredReply(applyOutcome.reason());
-                    deferred = true;
-                    break;
-                }
-                if (applyOutcome.needsMoreIteration()) {
-                    pendingReason = applyOutcome.reason();
-                }
+        if (command.requiresApplyPhase()) {
+            PassOutcome applyOutcome = runCommandPass(agent, chatMemoryId, invocationParameters, cwd, applyPass, command);
+            log.info("Apply loop pass {} command '{}' outcome: [status={}, reason={}]",
+                    applyPass, command.externalName(), applyOutcome.status(), applyOutcome.reason());
+            if (applyOutcome.isDeferred()) {
+                pendingReason = applyOutcome.reason().isBlank()
+                        ? "layout apply pass deferred without reason"
+                        : applyOutcome.reason();
+                needsMoreIteration = true;
+                log.info("Apply loop pass {} command '{}' deferred; retrying within outer pass budget: {}",
+                        applyPass, command.externalName(), pendingReason);
             }
+            if (applyOutcome.needsMoreIteration()) {
+                pendingReason = applyOutcome.reason();
+                needsMoreIteration = true;
+            }
+        }
 
+        if (!needsMoreIteration) {
             log.debug("Running skill assert verification after {} tool calls for pass {}", command.externalName(), applyPass);
-            PassOutcome assertsOutcome = runSkillAssertsVerification(
-                    agent,
-                    chatMemoryId,
-                    invocationParameters,
-                    cwd,
-                    applyPass);
+            PassOutcome assertsOutcome = runSkillAssertsVerification(agent, chatMemoryId, invocationParameters, cwd, applyPass);
             log.info("Apply loop pass {} asserts verification outcome: [status={}, reason={}]",
                     applyPass, assertsOutcome.status(), assertsOutcome.reason());
             if (assertsOutcome.isSuccess()) {
                 if (command == ProjectLayoutCommand.VERIFY) {
-                    return Map.of("messages", AiMessage.from(assistantReply));
+                    return new IterationResult.Done(Map.of("messages", AiMessage.from("Project layout updated")));
                 }
-                return Map.of("messages", AiMessage.from(assistantReply),
-                        ProjectCreationState.PROJECT_LAYOUT_UPDATE_DATE_CHANNEL, OffsetDateTime.now());
+                return new IterationResult.Done(Map.of(
+                        "messages", AiMessage.from("Project layout updated"),
+                        ProjectCreationState.PROJECT_LAYOUT_UPDATE_DATE_CHANNEL, OffsetDateTime.now()));
             }
             if (assertsOutcome.isDeferred()) {
-                assistantReply = deferredReply(assertsOutcome.reason());
-                deferred = true;
-                break;
+                if (command == ProjectLayoutCommand.VERIFY) {
+                    return new IterationResult.Done(
+                            Map.of("messages", AiMessage.from(deferredReply(assertsOutcome.reason()))));
+                }
+                pendingReason = assertsOutcome.reason().isBlank()
+                        ? ASSERTS_RETRY_REASON
+                        : assertsOutcome.reason();
+                log.info("Project layout apply pass {} deferred during assert verification, retrying full apply: {}",
+                        applyPass, pendingReason);
+                return new IterationResult.Continue(pendingReason);
             }
-
-            pendingReason = assertsOutcome.reason().isBlank()
-                    ? ASSERTS_RETRY_REASON
-                    : assertsOutcome.reason();
+            pendingReason = assertsOutcome.reason().isBlank() ? ASSERTS_RETRY_REASON : assertsOutcome.reason();
             log.info("Project layout apply pass {} failed assert verification, retrying full apply: {}",
                     applyPass, pendingReason);
         }
 
-        if (!deferred) {
-            assistantReply = deferredReply("project layout apply did not converge after " + MAX_APPLY_PASSES
-                    + " pass(es): " + pendingReason);
-        }
-
-        return Map.of("messages", AiMessage.from(assistantReply));
+        return new IterationResult.Continue(pendingReason);
     }
 
     private PassOutcome runCommandPass(Agent agent,
@@ -336,6 +349,9 @@ public class ProjectLayoutApplierNode implements NodeAction<ProjectCreationState
                                     String chatMemoryId,
                                     String cwd) {
         List<ChatMessage> messages = new ArrayList<>(baseRequest.messages());
+        LinkedHashSet<String> seenToolCallOrder = new LinkedHashSet<>();
+        LinkedHashMap<String, Integer> toolCallCounts = new LinkedHashMap<>();
+        LinkedHashMap<String, String> lastToolResultsBySignature = new LinkedHashMap<>();
         try {
             for (int iteration = 0; iteration < MAX_TOOL_ITERATIONS; iteration++) {
                 log.debug("Starting tool-calling iteration {} for workspace {}", iteration, cwd);
@@ -354,12 +370,27 @@ public class ProjectLayoutApplierNode implements NodeAction<ProjectCreationState
                 }
 
                 for (ToolExecutionRequest request : aiMessage.toolExecutionRequests()) {
-                    log.debug("Executing tool '{}' args={}", request.name(), request.arguments());
+                    String toolCallSignature = toolCallSignature(request);
+                    seenToolCallOrder.add(toolCallSignature);
+
+                    int callCount = toolCallCounts.getOrDefault(toolCallSignature, 0) + 1;
+                    putBounded(toolCallCounts, toolCallSignature, callCount);
+
+                    String previousResult = lastToolResultsBySignature.getOrDefault(toolCallSignature, "");
+                    if (callCount > MAX_REPEAT_PER_TOOL_CALL && indicatesBlockingToolFailure(previousResult)) {
+                        String reason = "repeated tool call blocked after %d attempts for '%s': %s"
+                                .formatted(callCount - 1, request.name(), previousResult);
+                        log.warn("{} (tool call order={})", reason, seenToolCallOrder);
+                        return PassOutcome.needMoreIteration(reason);
+                    }
+
+                    log.debug("Executing tool '{}' args={} (attempt #{})", request.name(), request.arguments(), callCount);
                     ToolExecutor executor = toolProviderResult.toolExecutorByName(request.name());
                     String result = executor != null
                             ? executor.execute(request, chatMemoryId)
                             : "Tool not found: " + request.name();
                     log.debug("Tool '{}' result: {}", request.name(), result);
+                    putBounded(lastToolResultsBySignature, toolCallSignature, result);
                     messages.add(ToolExecutionResultMessage.from(request, result));
                 }
             }
@@ -435,6 +466,64 @@ public class ProjectLayoutApplierNode implements NodeAction<ProjectCreationState
                 || normalizedText.contains("\"overall\": \"pass\"");
     }
 
+    private String toolCallSignature(ToolExecutionRequest request) {
+        return request.name() + "|" + normalizeArguments(request.arguments());
+    }
+
+    private String normalizeArguments(String arguments) {
+        if (arguments == null || arguments.isBlank()) {
+            return "";
+        }
+        try {
+            Object parsed = TOOL_SIGNATURE_MAPPER.readValue(arguments, Object.class);
+            return TOOL_SIGNATURE_MAPPER.writeValueAsString(canonicalizeArgumentObject(parsed));
+        } catch (JsonProcessingException e) {
+            // Fallback keeps legacy behavior for non-JSON argument payloads.
+            return arguments.replaceAll("\\s+", "");
+        }
+    }
+
+    private Object canonicalizeArgumentObject(Object value) {
+        if (value instanceof Map<?, ?> rawMap) {
+            LinkedHashMap<String, Object> ordered = new LinkedHashMap<>();
+            rawMap.entrySet().stream()
+                    .map(entry -> Map.entry(String.valueOf(entry.getKey()), entry.getValue()))
+                    .sorted(Map.Entry.comparingByKey())
+                    .forEach(entry -> ordered.put(entry.getKey(), canonicalizeArgumentObject(entry.getValue())));
+            return ordered;
+        }
+        if (value instanceof List<?> list) {
+            return list.stream()
+                    .map(this::canonicalizeArgumentObject)
+                    .toList();
+        }
+        return value;
+    }
+
+    private boolean indicatesBlockingToolFailure(String text) {
+        if (text == null || text.isBlank()) {
+            return false;
+        }
+        String normalized = text.toLowerCase();
+        return normalized.contains("parent folder")
+                || normalized.contains("parent directory")
+                || normalized.contains("no such file")
+                || normalized.contains("does not exist")
+                || normalized.contains("not found")
+                || normalized.contains("enoent");
+    }
+
+    private <K, V> void putBounded(LinkedHashMap<K, V> target, K key, V value) {
+        if (!target.containsKey(key) && target.size() >= TOOL_CALL_HISTORY_LIMIT) {
+            Iterator<K> iterator = target.keySet().iterator();
+            if (iterator.hasNext()) {
+                iterator.next();
+                iterator.remove();
+            }
+        }
+        target.put(key, value);
+    }
+
     private String findLastToolResultText(List<ChatMessage> messages) {
         for (int i = messages.size() - 1; i >= 0; i--) {
             ChatMessage message = messages.get(i);
@@ -472,7 +561,7 @@ public class ProjectLayoutApplierNode implements NodeAction<ProjectCreationState
             return switch (normalized) {
                 case "apply" -> APPLY;
                 case "resync" -> RESYNC;
-                case "validate", "verify" -> VERIFY;
+                case "verify" -> VERIFY;
                 case "schedule" -> SCHEDULE;
                 default -> RESYNC;
             };
@@ -491,6 +580,14 @@ public class ProjectLayoutApplierNode implements NodeAction<ProjectCreationState
         SUCCESS,
         NEED_MORE_ITERATION,
         DEFERRED
+    }
+
+    private sealed interface IterationResult permits IterationResult.Done, IterationResult.Continue {
+        record Done(Map<String, Object> stateUpdate) implements IterationResult {
+        }
+
+        record Continue(String pendingReason) implements IterationResult {
+        }
     }
 
     private record PassOutcome(PassStatus status, String reason) {

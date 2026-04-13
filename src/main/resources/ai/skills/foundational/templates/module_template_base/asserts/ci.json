@@ -2,16 +2,16 @@
   "domain": "ci",
   "checks": [
     {
-      "id": "FND-001",
+      "id": "MTB-002.1",
       "title": "Github release configured",
-      "severity": "medium",
+      "severity": "major",
       "required_files": [
         ".github/workflows/release.yml"
       ],
       "signals": []
     },
     {
-      "id": "FND-002",
+      "id": "MTB-002.2",
       "title": "Github release drafter configured",
       "severity": "minor",
       "required_files": [
@@ -20,7 +20,7 @@
       "signals": []
     },
     {
-      "id": "FND-003",
+      "id": "MTB-002.3",
       "title": "Dependabot configured",
       "severity": "major",
       "required_files": [
@@ -32,7 +32,7 @@
       ]
     },
     {
-      "id": "FND-004",
+      "id": "MTB-002.4",
       "title": "GitHub CI configured",
       "severity": "critical",
       "required_files": [

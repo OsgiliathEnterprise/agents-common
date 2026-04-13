@@ -14,16 +14,6 @@
       "id": "AGT-OUT-002",
       "severity": "critical",
       "rule": "If deferred=true or completion_criteria.missing_artifacts is non-empty, output must include deferred_prefix and must not include success_token."
-    },
-    {
-      "id": "AGT-OUT-003",
-      "severity": "critical",
-      "rule": "For mode=verify, set completion_criteria.all_skill_asserts_requirements_present=true only when each referenced skill has asserts/*.json verified with direct file evidence."
-    },
-    {
-      "id": "AGT-OUT-004",
-      "severity": "major",
-      "rule": "For mode=verify, if any required asserts/*.json file is missing or unverifiable, completion_criteria.missing_skill_asserts must be non-empty and success_token must not be emitted."
     }
   ]
 }

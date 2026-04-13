@@ -1,6 +1,6 @@
 ---
 name: module_template_base
-description: You are an assistant ensuring the project layout is respected and setup properly with  Gradle setup, BDD tests, and proper CICD
+description: You are an assistant ensuring the project layout is respected and set up properly with Gradle, BDD tests, and CI/CD.
 tools: [ "list_files_in_folder", "create_directory", "get_file_text_by_path", "create_new_file_with_text", "write_file", "directory_tree", "read_multiple_files", "search_files" ]
 ---
 
@@ -8,33 +8,34 @@ tools: [ "list_files_in_folder", "create_directory", "get_file_text_by_path", "c
 
 ## Description
 
-Assesses and scaffolds engineering fundamentals at the repository root for a Java/Gradle library: build configuration,
+Assesses and scaffolds engineering fundamentals at the repository root for a Java/Gradle project: build configuration,
 test infrastructure (Cucumber/BDD), CI/CD workflows, release capability (JReleaser), and version catalog conventions.
 Reports deterministic PASS/FAIL results per check with file evidence.
 
 ## Quick Reference
 
-| Need                              | Source                                                                       |
-|-----------------------------------|------------------------------------------------------------------------------|
-| Check definitions (FND-001–006.4) | `asserts/fundamentals-checks.json`                                           |
-| Domain checks (build)             | `asserts/build.json`                                                         |
-| Domain checks (tests)             | `asserts/tests.json`                                                         |
-| Domain checks (ci)                | `asserts/ci.json`                                                            |
-| Domain checks (release)           | `asserts/release.json`                                                       |
-| Root build template               | `templates/build.gradle.kts.template`                                        |
-| Root settings template            | `templates/settings.gradle.kts.template`                                     |
-| Version catalog template          | `templates/gradle/libs.versions.toml.template`                               |
-| JReleaser template                | `templates/jreleaser.yml.template`                                           |
-| Cucumber runner template          | `templates/src/test/java/cucumber/CucumberTestRunner.java.template`          |
-| Cucumber Spring template          | `templates/src/test/java/cucumber/CucumberSpringConfiguration.java.template` |
-| Dependabot asset                  | `assets/.github/dependabot.yml`                                              |
-| CI workflow asset                 | `assets/.github/workflows/ci.yml`                                            |
-| Release workflow asset            | `assets/.github/workflows/release.yml`                                       |
-| Release draft workflow asset      | `assets/.github/workflows/release-draft.yml`                                 |
-| Cucumber properties asset         | `assets/src/test/resources/cucumber.properties`                              |
-| Sample feature asset              | `assets/src/test/resources/features/sample.feature`                          |
-| Sample dataset asset              | `assets/src/test/resources/dataset/config.json`                              |
-| Placeholder examples              | `templates/variables.example.env`                                            |
+| Need                         | Source                                                                                   |
+|------------------------------|------------------------------------------------------------------------------------------|
+| Check definitions (MTB-*)    | `asserts/fundamentals-checks.json`                                                       |
+| Domain checks (build)        | `asserts/build.json`                                                                     |
+| Domain checks (tests)        | `asserts/tests.json`                                                                     |
+| Domain checks (ci)           | `asserts/ci.json`                                                                        |
+| Domain checks (release)      | `asserts/release.json`                                                                   |
+| Root build template          | `templates/build.gradle.kts.template`                                                    |
+| Root settings template       | `templates/settings.gradle.kts.template`                                                 |
+| Version catalog template     | `templates/gradle/libs.versions.toml.template`                                           |
+| JReleaser template           | `templates/jreleaser.yml.template`                                                       |
+| Spring boot main Application | `templates/src/main/java/com/example/Application.java.template`                          |
+| Cucumber runner template     | `templates/src/test/java/com/example/cucumber/CucumberTestRunner.java.template`          |
+| Cucumber Spring template     | `templates/src/test/java/com/example/cucumber/CucumberSpringConfiguration.java.template` |
+| Dependabot asset             | `assets/.github/dependabot.yml`                                                          |
+| CI workflow asset            | `assets/.github/workflows/ci.yml`                                                        |
+| Release workflow asset       | `assets/.github/workflows/release.yml`                                                   |
+| Release draft workflow asset | `assets/.github/workflows/release-draft.yml`                                             |
+| Cucumber properties asset    | `assets/src/test/resources/cucumber.properties`                                          |
+| Sample feature asset         | `assets/src/test/resources/features/sample.feature`                                      |
+| Sample dataset asset         | `assets/src/test/resources/dataset/config.json`                                          |
+| Placeholder examples         | `templates/variables.example.env`                                                        |
 
 ## Required Inputs
 
@@ -52,8 +53,11 @@ are missing rather than inventing placeholders.
 ## Explanation
 
 - **Scope**: Root-level conventions only unless a check explicitly allows module fallback.
-- **Modes**: `validate` and `dryRun=true` are audit-only; `resync` with `dryRun=false` applies minimal scaffold
-  changes for failed checks only.
+- **Modes**:
+    - `initialize`: interactive scaffold generation.
+    - `validate`: no file modifications; run checks and validation commands.
+    - `resync` with `dryRun=true`: no file modifications; run checks and validation commands.
+    - `resync` with `dryRun=false`: apply minimal scaffold changes for failed checks, then run validation commands.
 - **Templates**: Use `{{VARIABLE_NAME}}` placeholder format; project-specific files (e.g. `build.gradle.kts`,
   `jreleaser.yml`).
 - **Assets**: Copied as-is with no substitution; static support files (e.g. `cucumber.properties`,
@@ -67,25 +71,44 @@ All checks are defined in `asserts/*.json`. Never copy `asserts/` files into tar
 ### New project setup:
 
 1. For interactive mode: gather required inputs (see Required Inputs).
-2. For `resync dryRun=false`: skip questions; apply defaults; preserve existing files where possible.
-3. Create any missing parent directories (`gradle/`, `.github/`, `.github/workflows/`) before writing files.
+2. For `initialize` and `resync dryRun=false`: skip questions; preserve existing files where possible. If required
+   template values are
+   missing, do not invent placeholders; skip generation for those files and report them as missing artifacts.
+3. Replicate the overall parent directories by comparing the skills'
+   `templates/**/*` and `assets/**/*` trees against the target project's directory tree using `directory_tree` tool or
+   equivalent (e.g. `<projectdir>/gradle/`, `<projectdir>/.github/`,
+   `<projectdir>/.github/workflows/`, `<projectdir>/src/`, `<projectdir>/src/main/`...) **excluding files**. If the
+   folder is part of a package e.g. `com/example`, try to identify or find a good default for it (and update package
+   accordingly). If one or more parent directories are missing, create the full path from the nearest existing root to
+   the required leaf (still excluding files).
 4. Generate scaffold files from templates by replacing `{{...}}` variables using `create_new_file_with_text` or
    equivalent.
-5. Copy static assets as-is using `create_new_file_with_text` or equivalent.
-6. Apply `assets/**/*` and hydrated `templates/**/*` on the target project.
+5. Copy static assets as-is using `create_new_file_with_text` or equivalent (e.g. `write_file`) if you loop multiple
+   times, check if some root directory should be created or if the file exists, and act accordingly.
+6. Apply `assets/**/*` and `templates/**/*` on the target project.
+7. Hydrates the copied templates with the provided variables and any relevant information.
 
 Never copy `asserts/` into the target project.
 
 ### Updates and maintenance:
 
-- For `validate` and `resync dryRun=true`: run checks and report results without modifying files.
+#### Validate: run checks and validation commands, then report results without modifying files.
+
+- For `validate` and `resync dryRun=true`: run checks and validation commands, then report results without modifying
+  files.
+
+#### Resync with dryRun=false: apply only the necessary scaffold changes for failed checks, then run validation commands.
+
 - For `resync dryRun=false`: apply only the necessary scaffold changes for failed checks:
+    - If folders are missing, create them, starting for the missing root, up to the leaf.
     - If a required artifact is missing, create it from the corresponding template or asset.
     - If a capability check fails but the artifact is present, do not modify the file; report the failure for manual
       resolution.
-    - Do not modify existing file with user moified content; report any check failures with file evidence for manual
+    - Do not modify existing files with user modified content, or only skills updates (i.e. libs.versions.toml package
+      versions,
+      new library); report any check failures with
+      file evidence for manual
       resolution.
-    - For dependency version updates, update the version catalog template and regenerate the `libs.versions.toml` file.
 
 Never copy `asserts/` into the target project.
 
@@ -100,6 +123,8 @@ Validation commands:
 ```
 
 Evaluate results against `asserts/*.json`
+
+If a required validation command cannot be executed or fails, set `deferred=true` and report command output evidence.
 
 ## Required Output
 

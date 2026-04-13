@@ -2,7 +2,7 @@
   "domain": "build",
   "checks": [
     {
-      "id": "FND-001",
+      "id": "MTB-001",
       "title": "Gradle build can compile Java",
       "severity": "critical",
       "required_files": ["build.gradle", "build.gradle.kts"],
@@ -17,7 +17,7 @@
       ]
     },
     {
-      "id": "FND-005",
+      "id": "MTB-005",
       "title": "Versions centralized in libs.versions.toml",
       "severity": "critical",
       "required_files": ["gradle/libs.versions.toml"],
@@ -32,14 +32,14 @@
       ]
     },
     {
-      "id": "FND-005.3",
+      "id": "MTB-005.3",
       "title": "Spring managed in catalog (Boot + Actuator)",
       "severity": "minor",
       "required_files": ["gradle/libs.versions.toml"],
       "signals": ["springBoot", "springBootStarterActuator"]
     },
     {
-      "id": "FND-005.4",
+      "id": "MTB-005.4",
       "title": "Publishing conventions present",
       "severity": "major",
       "required_files": ["build.gradle", "build.gradle.kts"],
@@ -52,7 +52,7 @@
       ]
     },
     {
-      "id": "FND-005.5",
+      "id": "MTB-005.5",
       "title": "SonarQube managed in catalog and configured",
       "severity": "major",
       "required_files": ["gradle/libs.versions.toml", "build.gradle", "build.gradle.kts"],

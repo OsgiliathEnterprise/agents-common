@@ -2,7 +2,7 @@
   "domain": "tests",
   "checks": [
     {
-      "id": "FND-005.1",
+      "id": "MTB-005.1",
       "title": "Cucumber managed in catalog",
       "severity": "minor",
       "required_files": [
@@ -13,7 +13,7 @@
       ]
     },
     {
-      "id": "FND-005.2",
+      "id": "MTB-005.2",
       "title": "JaCoCo managed in catalog",
       "severity": "minor",
       "required_files": [
@@ -24,10 +24,11 @@
       ]
     },
     {
-      "id": "FND-006.1",
+      "id": "MTB-006.1",
       "title": "Cucumber runner scaffold is present",
       "severity": "minor",
       "required_files": [
+        "src/test/java/.*/cucumber/CucumberTestRunner.java",
         "src/test/java/cucumber/CucumberTestRunner.java"
       ],
       "signals": [
@@ -37,10 +38,11 @@
       ]
     },
     {
-      "id": "FND-006.2",
+      "id": "MTB-006.2",
       "title": "Cucumber Spring configuration scaffold is present",
       "severity": "minor",
       "required_files": [
+        "src/test/java/.*/cucumber/CucumberSpringConfiguration.java",
         "src/test/java/cucumber/CucumberSpringConfiguration.java"
       ],
       "signals": [
@@ -49,7 +51,7 @@
       ]
     },
     {
-      "id": "FND-006.3",
+      "id": "MTB-006.3",
       "title": "Sample Cucumber feature is present",
       "severity": "minor",
       "required_files": [
@@ -61,7 +63,7 @@
       ]
     },
     {
-      "id": "FND-006.4",
+      "id": "MTB-006.4",
       "title": "Cucumber properties and sample test dataset are present",
       "severity": "minor",
       "required_files": [

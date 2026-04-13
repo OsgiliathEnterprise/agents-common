@@ -2,7 +2,7 @@
   "domain": "release",
   "checks": [
     {
-      "id": "FND-002",
+      "id": "MTB-004",
       "title": "Release capability using JReleaser",
       "severity": "critical",
       "required_files": ["jreleaser.yml", "jreleaser.yaml"],

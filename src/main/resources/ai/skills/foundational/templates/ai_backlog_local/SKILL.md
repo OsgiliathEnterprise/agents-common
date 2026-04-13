@@ -14,34 +14,38 @@ task folders from templates.
 
 ## Quick Reference
 
-| Need                            | Source                               |
-|---------------------------------|--------------------------------------|
-| Check definitions (BKL-001–007) | `asserts/backlog-checks.json`        |
-| Domain checks (structure)       | `asserts/structure.json`             |
-| Domain checks (task content)    | `asserts/task-content.json`          |
-| Task templates (phases 1–15)    | `assets/ai/tasks/000-Task_Template/` |
-| Placeholder variable examples   | `templates/variables.example.env`    |
+| Need                                   | Source                                  |
+|----------------------------------------|-----------------------------------------|
+| Check definitions (BKL-001–003)        | `asserts/structure.json`                |
+| Check definitions (BKL-004–007)        | `asserts/task-content.json`             |
+| Output contract and completion tokens  | `asserts/backlog-checks.json`           |
+| Task templates (phases 1–15)           | `templates/ai/tasks/000-Task_Template/` |
+| Placeholder variable examples          | `templates/variables.example.env`       |
 
 ## Required Inputs
 
 For interactive mode, ask before generating:
 
-| Variable              | Description              | Example                            |
-|-----------------------|--------------------------|------------------------------------|
-| `TASK_TYPE`           | Type prefix              | `feat`, `fix`, `chore`, `refactor` |
-| `TASK_ID`             | Numeric ID (zero-padded) | `042`                              |
-| `TASK_NAME`           | Name slug                | `Add_retry_logic`                  |
-| `BUSINESS_VALUE`      | Integer 1–10             | `8`                                |
-| `REQUIREMENT_CLARITY` | Integer 1–10             | `7`                                |
-| `SEVERITY`            | Enum                     | `critical`, `major`, `minor`       |
-| `EFFORT`              | Fibonacci 1–21           | `5`                                |
-| `REPORTER`            | Persona in kebab-case    | `backend-architect`                |
-| `ASSIGNEES`           | YAML inline list         | `agent-alpha,HumanCaller`          |
+| Variable              | Description                                | Example                            |
+|-----------------------|--------------------------------------------|------------------------------------|
+| `TASK_TYPE`           | Type prefix                                | `feat`, `fix`, `chore`, `refactor` |
+| `TASK_ID`             | Numeric ID (zero-padded)                   | `042`                              |
+| `TASK_NAME`           | Name slug                                  | `Add_retry_logic`                  |
+| `CREATED_DATETIME`    | Initial ISO-8601 timestamp                 | `2026-03-28T10:00:00`              |
+| `UPDATED_DATETIME`    | Latest ISO-8601 timestamp                  | `2026-03-28T10:00:00`              |
+| `BUSINESS_VALUE`      | Integer 1–10                               | `8`                                |
+| `REQUIREMENT_CLARITY` | Integer 1–10                               | `7`                                |
+| `SEVERITY`            | Enum                                       | `critical`, `major`, `minor`       |
+| `EFFORT`              | Fibonacci 1–21                             | `5`                                |
+| `REPORTER`            | Persona in kebab-case                      | `backend-architect`                |
+| `ASSIGNEES`           | YAML inline list of `AgentId|HumanCaller` | `agent-alpha,HumanCaller`          |
 
 For non-interactive mandatory project-layout runs (`TASK_ID=001`, `TASK_NAME=Project_layout`), apply these defaults and
 do not ask questions:
-`TASK_TYPE=chore`, `BUSINESS_VALUE=8`, `REQUIREMENT_CLARITY=8`, `SEVERITY=major`, `EFFORT=5`,
-`REPORTER=project-template-scaffolder`, `ASSIGNEES=HumanCaller`.
+`TASK_TYPE=chore`, `CREATED_DATETIME=<current ISO-8601 timestamp>`,
+`UPDATED_DATETIME=<same as CREATED_DATETIME at initialization>`, `BUSINESS_VALUE=8`,
+`REQUIREMENT_CLARITY=8`, `SEVERITY=major`, `EFFORT=5`, `REPORTER=project-template-scaffolder`,
+`ASSIGNEES=HumanCaller`.
 
 ## Explanation
 
@@ -93,11 +97,11 @@ effort: 1|2|3|5|8|13|21
 |-------|--------------------------------|
 | H1    | Task name + very short summary |
 | H2 §1 | Detailed task checklist        |
-| H2 §2 | Detailed description           |
+| H2 §2 | More detailed description      |
 | H2 §3 | Actions achieved               |
 | H2 §4 | Files created                  |
 | H2 §5 | Rationale of choices           |
-| H2 §6 | Alternatives dropped           |
+| H2 §6 | Alternatives dropped and rationale |
 | H2 §7 | Other possible alternatives    |
 | H2 §8 | Difficulties encountered       |
 
@@ -108,13 +112,23 @@ All structural and content checks are defined in `asserts/.json`. Never copy `as
 ### Initial project layout setup (Task 001)
 
 1. For interactive mode: gather all required inputs (see Required Inputs).
-2. If `ai/` or `ai/tasks/` is missing, create these directories first.
-3. Create a `<projectdir>/ai/tasks/001-Project_layout/*` folder if it doesn't exists.
-4. Instantiate tasks from template (clone them, without the suffix) with `write_file` or equivalent, stick to these 15
+2. Create any missing parent directories (e.g. `<projectdir>/ai/`, `<projectdir>/ai/tasks/`, ...) before writing files
+   by comparing the skills'
+   `templates/**/*` and `assets/**/*` tree against the target project's directory tree using `directory_tree` tool or
+   equivalent. Do not create a directory for skills files. If a parent directory is missing, create the first level of
+   missing directories and report the rest as missing artifacts without creating them. For example, if
+   `<projectdir>/ai/tasks/` is missing, create `<projectdir>/ai/` and report `<projectdir>/ai/tasks/` as a missing
+   artifact
+   without creating it.
+3. Create a `<projectdir>/ai/tasks/001-Project_layout/*` folder if it doesn't exist.
+4. Instantiate tasks from template (clone them, without the suffix) with `write_file`  or equivalent (e.g. `write_file`)
+   if you loop multiple times, check if some root directory should be created or if the files exist and act accodingly.
+   Stick to these 15
    files.
-5. Replace `{{...}}` variables in all 15 phases files tasks of `ai/tasks/001-Project_layout/*.md` using
+5. Replace `{{...}}` variables in all 15 phases files tasks of `<projectdir>/ai/tasks/001-Project_layout/*.md` using
    `replace_file_text_by_path` or equivalent, ensure the frontmatter is correctly filled.
-6. Fill the actions description on each tickets based on everything that happened everything.
+6. Fill the action descriptions on each ticket based on everything that happened during the current memory session that
+   is worth mentioning.
 
 NEVER copy `asserts/` files into the target project.
 
@@ -125,12 +139,16 @@ NEVER copy `asserts/` files into the target project.
     - If a new task is initialized (unrelated to previously filled requirement), create a new task folder and tasks
       files from the
       template with the correct naming convention and fill
-      the frontmatter.
+      the frontmatter same way as the initial project layout setup (the 15 tasks). Also look and `ai/MEMORY.md` for any
+      relevant
+      information to add to the phase files.
     - If there is a current action being done (e.g. `status: DOING`), update the corresponding phase file with the new
-      content and update the `updated` timestamp in the frontmatter. Also look and `ai/MEMORY.md` for any relevant
+      content and update the `updated` timestamp in the frontmatter. Also look and `ai/MEMORY.md` and internal memory
+      for any relevant
       information to add to the phase file.
     - if a task is completed, update the corresponding phase file with the new content, set `status: DONE`, and update
-      the `updated` timestamp in the frontmatter. Also look and `ai/MEMORY.md` for any relevant information to add to
+      the `updated` timestamp in the frontmatter. Also look and `ai/MEMORY.md` and internal memory for any relevant
+      information to add to
       the phase file.
 
 ## Mandatory completion task

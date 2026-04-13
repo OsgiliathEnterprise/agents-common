@@ -107,15 +107,17 @@ When the caller explicitly requests immediate apply (no clarification loop), use
 
 ### 2) `initialize`
 
-- Create module scaffold of every skills of the agent.
+- Create module scaffold of every skills of the agent, starting with ai_memory, ai_backlog_local, then
+  module_template_base.
 - Ask for required rendering values before file generation.
 - Re-run `validate` checks after scaffold generation.
 
 ### 3) `apply` / `apply-<skill>`
 
-- When `apply`: apply all skills to generate or update files then ensure every assertions of the `skills` are
+- When `apply`: apply all skills starting from ai_memory, the ai_backlog_local and finally module_template_base to
+  generate or update files then ensure every assertion of the `skills` are
   fullfilled.
-- Run "Mandatory completion task" flow to record the applied setup.
+- Run the "Mandatory completion task" flow to record the applied setup.
 - If the Backlog is setup and if the related task is not done, create the `00X-<taskname>` task with all 15 phase files,
   and fill in the achieved
   actions and rationale based on the applied setup.
@@ -125,12 +127,12 @@ When the caller explicitly requests immediate apply (no clarification loop), use
 ### 3.1) `apply-<skill>` scope
 
 - `apply-project-template`: initialization to the `module_template_base` skill (see its
-  Verification Flow), ensure every assertions of the `module_template_base` are fullfilled.
+  Verification Flow), ensure every assertion of the `module_template_base` are fullfilled.
 - `apply-memory`: delegate all memory file verification and initialization to the `ai_memory` skill (see its
-  Verification Flow), ensure every assertions of the `ai_memory` are fullfilled.
-- `apply-backlog`: run only the AI backlog structure setup; skip memory-specific tasks, ensure every assertions of the
+  Verification Flow), ensure every assertion of the `ai_memory` are fullfilled.
+- `apply-backlog`: run only the AI backlog structure setup; skip memory-specific tasks, ensure every assertion of the
   `ai_backlog_local` are fullfilled.
-- `apply`: run module_template, backlog and memory setup in sequence.
+- `apply`: run memory, backlog and module_template setup in sequence.
 
 ### 4) `verify`
 
@@ -143,7 +145,7 @@ When the caller explicitly requests immediate apply (no clarification loop), use
 ### 5) `resync` / `resync-<skill>`
 
 - Audit current state first (`verify`).
-- Produce minimal patch targets with rationale.
+- Produce minimal patch targets with rationale from the 3 skills.
 - If `dryRun=true`: provide patch plan only.
 - If `dryRun=false` (default): apply minimal changes, then re-run checks.
 - If `resync-<skill>` is specified, limit amendments to that skill's scope only.
@@ -154,7 +156,7 @@ When the caller explicitly requests immediate apply (no clarification loop), use
 - Treat missing directories/files as expected bootstrap state, not as terminal errors.
 - Before any read of a path under a missing parent folder, create the parent folder first.
 - If a read/list operation returns `ENOENT` / `Parent directory does not exist`, immediately switch to create flow for
-  that path.
+  that path to exists (i.e. create parent folder).
 - Never stop after partial root writes; continue until all required artifacts are present or bounded retries are
   exhausted.
 - For non-interactive apply runs, perform at most `maxApplyPasses` corrective passes (default 3), each pass ending with
@@ -176,7 +178,8 @@ For `dryRun=false` or mutating commands, ensure the `asserts/*.json` of each ski
 verification, and the required artifacts are present
 before emitting the completion token `Project layout updated`. If any required artifact is missing, or if verification
 is partial, emit `Project layout deferred: <reason>` with explicit `missing_artifacts` and do not emit the success
-token. Ensure the target project fulfills this agent `asserts/*.json` content.
+token. Ensure the target project fulfills this agent's and its skill's `asserts/*.json` content, if it isn't, fill the
+backlog's 'retro.md', 'skills.md', or 'agent.md' with improvement suggestions and iterate again with improvement.
 Skip mandatory completion-task writing for `verify`; that mode is a focused audit.
 
 ### 6.1) Backlog fullfilment
@@ -195,6 +198,9 @@ Completion is valid only if all 3 checks pass in the same run.
   `Project layout updated` anywhere in the response.
 - Deferred/failure runs must emit `Project layout deferred: <reason>` and include explicit `missing_artifacts`.
 - Enforce these semantics with `asserts/*.json` (skills and agent).
+
+Do not copy `asserts/` files into the target project; they are source-only governance artifacts for validation, not
+templates.
 
 ### 7) `schedule`
 
@@ -236,8 +242,6 @@ For `dryRun=false`, never emit success semantics (`PASS`, `Project layout update
 `all_required_artifacts_present=false` or `deferred=true`.
 When deferred or failed, use `completion_token="Project layout deferred"` and include at least one concrete reason in
 `missing_artifacts` or check evidence.
-For `verify`, set `completion_criteria.all_skill_asserts_requirements_present=true` only when each referenced skill
-contains a verified `asserts/*.json` file.
 
 ## Guardrails
 
@@ -259,9 +263,9 @@ contains a verified `asserts/*.json` file.
 
 ## Assertions Source
 
-- Canonical output assertions: `asserts/*.json` of skills
+- Canonical output assertions: `asserts/*.json` of skills and agent
 - Use this file as source of truth for success/deferred token behavior.
 
-## Companion Assets
+## Companion Asserts
 
 - Output assertions: [asserts/project-template-scaffolder-output.json](asserts/project-template-scaffolder-output.json)

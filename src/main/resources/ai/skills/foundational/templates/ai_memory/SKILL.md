@@ -16,12 +16,12 @@ attempts, explicit corrections, and completed tasks across apply passes.
 | Need                            | Source                       |
 |---------------------------------|------------------------------|
 | Check definitions (MEM-001–004) | `asserts/memory-checks.json` |
+| MEMORY.md initialization file   | `assets/ai/MEMORY.md`        |
 
 ## Required Inputs
 
 - Project root path (to resolve `ai/MEMORY.md`).
 - Content to record: current status, correction, or completed task entry.
-- For non-interactive apply passes: a fresh UUID chat-memory id (format: `apply-pass-<uuid-v4>`).
 
 Non-interactive runs must not ask follow-up questions; apply a read-modify-write update directly.
 
@@ -38,29 +38,29 @@ Non-interactive runs must not ask follow-up questions; apply a read-modify-write
 
 1. Current status: graph nodes traversed, statements refined, responses.
 2. Temporary ADRs/attempts: logic or approaches tried but failed.
-3. Explicit corrections: preferences explicitly stated by the user.
+3. Explicit corrections: preference is explicitly stated by the user.
 4. Completed tasks: a record of successfully achieved work.
 
 ## Process
 
 ### Creation/Initialization
 
-1. Ensure `ai/` exists; create it if missing.
+1. Ensure `<projectdir>/ai/` exists; create it if missing.
 2. For non-interactive apply passes, generate a fresh UUID chat-memory id and reset pass-local chat state.
-3. Read `ai/MEMORY.md` via `get_file_text_by_path`.
-4. If not found (ENOENT), initialize with `create_new_file_with_text` or equivalent using a minimal structure: one `§`
-   header and
-   `Current status: initialized`. Create a backlog task for this initialization event (use ai_backlog skill).
+3. Read `<projectdir>/ai/MEMORY.md` via `get_file_text_by_path`.
+4. If not found (ENOENT), initialize with `create_new_file_with_text` or equivalent (e.g. `write_file`).
+   If operating in a loop, first verify whether the root directory should be created and whether files already exist,
+   then act accordingly. Use `assets/ai/MEMORY.md` as the initialization source.
 5. For any update: re-read, apply the modification in memory, write the entire updated content back via
    `replace_file_text_by_path`. Never partially overwrite.
 6. Keep total content ≤ 2000 characters.
-7. After each write, re-read `ai/MEMORY.md` and confirm non-empty content before reporting success.
+7. After each write, re-read `<projectdir>/ai/MEMORY.md` and confirm non-empty content before reporting success.
 
 Never copy `asserts/` files into target projects.
 
 ### Usage
 
-- Wrap conscise memory updates around significant events: new graph nodes, refined statements, failed attempts, explicit
+- Wrap concise memory updates around significant events: new graph nodes, refined statements, failed attempts, explicit
   corrections, and completed tasks. Also include choices made among alternatives.
 - For failed attempts, record the approach tried and the failure reason.
 - For explicit corrections, record the user’s stated preference and any relevant context.
@@ -99,4 +99,3 @@ The final output is one consolidated report for all memory checks.
 
 - Emit `Memory initialized` only after `ai/MEMORY.md` is verified non-empty by direct re-read.
 - Emit `Memory deferred` if the file is missing or empty post-write.
-
