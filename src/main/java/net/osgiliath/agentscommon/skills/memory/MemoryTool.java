@@ -14,11 +14,10 @@ import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Tool for managing AI memory in a project-local file.
- * The memory is stored in <projectroot>/ai/MEMORY.md.
+ * The memory is stored in "ai/MEMORY.md".
  */
 @Component
 public class MemoryTool {

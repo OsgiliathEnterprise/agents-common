@@ -11,6 +11,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+/**
+ * State for project creation process, tracking the status of project layout and related user interactions.
+ */
 public class ProjectCreationState extends WorspaceState<ChatMessage> {
 
     public static final String PROJECT_LAYOUT_DONE_CHANNEL = "projectLayoutDone";
