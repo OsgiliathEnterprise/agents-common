@@ -1,4 +1,4 @@
-package net.osgiliath.agentscommon.langgraph.node;
+package net.osgiliath.agentscommon.langgraph.node.auditor;
 
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
@@ -13,7 +13,7 @@ import dev.langchain4j.service.tool.ToolExecutor;
 import dev.langchain4j.service.tool.ToolProviderResult;
 import net.osgiliath.acplanggraphlangchainbridge.langgraph.state.AcpState;
 import net.osgiliath.acplanggraphlangchainbridge.langgraph.state.SessionContext;
-import net.osgiliath.agentscommon.langgraph.node.model.LayoutAuditResult;
+import net.osgiliath.agentscommon.langgraph.node.model.UpdateProposalKind;
 import net.osgiliath.agentscommon.langgraph.state.ProjectCreationState;
 import net.osgiliath.agentsdk.agent.parser.Agent;
 import net.osgiliath.agentsdk.agent.parser.AgentChatRequestBuilder;
@@ -27,7 +27,10 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 
 @Component
@@ -42,6 +45,7 @@ public class ProjectStructureAuditorNode implements NodeAction<ProjectCreationSt
     private static final int MAX_TOOL_ITERATIONS = 12;
 
     private final AgentParser agentParser;
+    private final ProposalKindToUserAnswerResolver proposalKindToUserAnswerResolver;
     private final Resource agentFileResource;
     private final ChatMemoryProvider sessionChatMemoryProvider;
     private final ChatModel chatModel;
@@ -55,8 +59,10 @@ public class ProjectStructureAuditorNode implements NodeAction<ProjectCreationSt
             ChatMemoryProvider sessionChatMemoryProvider,
             @Qualifier("primaryChatModel") ChatModel chatModel,
             AgentChatRequestBuilder chatRequestBuilder,
-            ProjectStructureAuditorResultInterpreter resultInterpreter) {
+            ProjectStructureAuditorResultInterpreter resultInterpreter,
+            ProposalKindToUserAnswerResolver proposalKindToUserAnswerResolver) {
         this.agentParser = agentParser;
+        this.proposalKindToUserAnswerResolver = proposalKindToUserAnswerResolver;
         this.agentFileResource = resolveAgentResource(
                 codepromptConfiguration.getAgent().getAgentFolders(),
                 resourceLocationResolver);
@@ -135,13 +141,12 @@ public class ProjectStructureAuditorNode implements NodeAction<ProjectCreationSt
                     ProjectCreationState.LAYOUT_UPDATE_PROPOSAL_CHANNEL, false);
         }
 
-        Optional<LayoutAuditResult> auditResult = runLayoutAudit(agent, sessionId, state);
-        boolean needsUpdate = auditResult.map(LayoutAuditResult::needsUpdate)
-                .orElseGet(() -> resultInterpreter.fallbackNeedsUpdateFromScannerState(state));
+        UpdateProposalKind proposalKind = runLayoutAudit(agent, sessionId, state);
+        boolean needsUpdate = proposalKind != UpdateProposalKind.NO_UPDATE_NEEDED;
 
         if (needsUpdate) {
             log.debug("Project layout requires refresh for session {}, asking user to update", sessionId);
-            String proposal = resultInterpreter.resolveUpdateProposal(auditResult, state);
+            String proposal = proposalKindToUserAnswerResolver.resolveUpdateProposal(proposalKind);
             AiMessage question = AiMessage.from(proposal);
             // Persist question so a subsequent "yes" can be routed to the applier.
             sessionMemory.add(question);
@@ -156,12 +161,12 @@ public class ProjectStructureAuditorNode implements NodeAction<ProjectCreationSt
                 ProjectCreationState.LAYOUT_UPDATE_PROPOSAL_CHANNEL, false);
     }
 
-    private Optional<LayoutAuditResult> runLayoutAudit(Agent agent, String sessionId, ProjectCreationState state) {
+    private UpdateProposalKind runLayoutAudit(Agent agent, String sessionId, ProjectCreationState state) {
         SessionContext sessionContext = state.<SessionContext>value(AcpState.SESSION_CONTEXT)
                 .orElse(SessionContext.empty());
         String cwd = sessionContext.cwd();
         if (".".equals(cwd) || cwd.isBlank()) {
-            return Optional.empty();
+            return resultInterpreter.extractAuditResult(null, state);
         }
 
         String command = String.format(
@@ -207,10 +212,10 @@ public class ProjectStructureAuditorNode implements NodeAction<ProjectCreationSt
             }
         } catch (Exception e) {
             log.warn("Layout audit via LLM tools failed for {}: {}", cwd, e.getMessage());
-            return Optional.empty();
+            return resultInterpreter.extractAuditResult(null, state);
         }
 
-        return resultInterpreter.extractAuditResult(lastAiMessage);
+        return resultInterpreter.extractAuditResult(lastAiMessage, state);
     }
 
 }

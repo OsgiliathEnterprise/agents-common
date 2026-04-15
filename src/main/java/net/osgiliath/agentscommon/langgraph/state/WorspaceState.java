@@ -4,9 +4,15 @@ import net.osgiliath.acplanggraphlangchainbridge.langgraph.state.AcpState;
 import org.bsc.langgraph4j.state.Channel;
 import org.bsc.langgraph4j.state.Channels;
 
-import java.net.URI;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
+/**
+ * State class for the workspace. This class extends the {@link AcpState} class and defines the channels that are used to store the state of the workspace. The channels defined in this class are used to store the root of the workspace, which is a list of files and directories in the workspace. The state is initialized with a map of initial data, which is passed to the constructor of the parent class.
+ *
+ * @param <T> The type of the messages stored in the state. This is defined in the parent class and is used to store the chat messages in the state.
+ */
 public class WorspaceState<T> extends AcpState<T> {
 
     public static final String WORKSPACE_ROOT_CHANNEL = "workspaceRoot";
@@ -14,12 +20,6 @@ public class WorspaceState<T> extends AcpState<T> {
      * State schema for the {@link AcpState}. This defines the channels that are used in the state and their types. The schema is a map where the keys are the channel names and the values are the channel definitions. In this case, we have three channels: MESSAGES_STATE, ATTACHMENTS_META, and ATTACHMENTS. The MESSAGES_STATE channel is defined in the parent class and is used to store the chat messages. The ATTACHMENTS_META channel is used to store the metadata of the attachments sent by the user, and the ATTACHMENTS channel is used to store the content of the attachments sent by the user.
      */
     public static final Map<String, Channel<?>> SCHEMA = getSchema();
-
-    private static Map<String, Channel<?>> getSchema() {
-        Map<String, Channel<?>> schema = new HashMap<>(AcpState.SCHEMA);
-        schema.put(WORKSPACE_ROOT_CHANNEL, Channels.appender(ArrayList::new));
-        return schema;
-    }
 
     /**
      * Constructor for the {@link AcpState}. It takes a map of initial data, which is used to initialize the state. The map should contain the initial values for the channels defined in the state schema.
@@ -30,8 +30,9 @@ public class WorspaceState<T> extends AcpState<T> {
         super(initData);
     }
 
-    public Optional<URI> workspaceRoot() {
-        return this.value(WORKSPACE_ROOT_CHANNEL);
+    private static Map<String, Channel<?>> getSchema() {
+        Map<String, Channel<?>> schema = new HashMap<>(AcpState.SCHEMA);
+        schema.put(WORKSPACE_ROOT_CHANNEL, Channels.appender(ArrayList::new));
+        return schema;
     }
-
 }

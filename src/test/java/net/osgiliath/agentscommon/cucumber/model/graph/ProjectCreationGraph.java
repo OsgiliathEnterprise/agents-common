@@ -7,7 +7,7 @@ import net.osgiliath.agentscommon.cucumber.model.node.PingAgentNode;
 import net.osgiliath.agentscommon.cucumber.model.node.WorkspaceScannerNode;
 import net.osgiliath.agentscommon.langgraph.node.ProjectLayoutApplierNode;
 import net.osgiliath.agentscommon.langgraph.node.ProjectRootResolverNode;
-import net.osgiliath.agentscommon.langgraph.node.ProjectStructureAuditorNode;
+import net.osgiliath.agentscommon.langgraph.node.auditor.ProjectStructureAuditorNode;
 import net.osgiliath.agentscommon.langgraph.state.ProjectCreationState;
 import org.bsc.langgraph4j.GraphStateException;
 import org.bsc.langgraph4j.StateGraph;
