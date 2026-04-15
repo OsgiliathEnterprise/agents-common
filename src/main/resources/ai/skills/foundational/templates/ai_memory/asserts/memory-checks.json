@@ -1,0 +1,59 @@
+{
+  "skill": "ai-memory-manager",
+  "version": "1.0.0",
+  "domain_files": [],
+  "output_contract": {
+    "success_token": "Memory initialized",
+    "deferred_token": "Memory deferred",
+    "checks": [
+      {
+        "id": "MEM-OUT-001",
+        "severity": "critical",
+        "rule": "Emit success_token only when ai/MEMORY.md exists and contains non-empty content verified by direct re-read after write."
+      },
+      {
+        "id": "MEM-OUT-002",
+        "severity": "critical",
+        "rule": "If ai/MEMORY.md is missing or content is empty after write, emit deferred_token instead and never emit success_token."
+      }
+    ]
+  },
+  "checks": [
+    {
+      "id": "MEM-001",
+      "title": "Memory parent directory exists",
+      "severity": "critical",
+      "required_paths": [
+        "ai/"
+      ],
+      "signals": []
+    },
+    {
+      "id": "MEM-002",
+      "title": "Memory file exists",
+      "severity": "critical",
+      "required_files": [
+        "ai/MEMORY.md"
+      ],
+      "signals": [
+        "§"
+      ]
+    },
+    {
+      "id": "MEM-003",
+      "title": "Memory file content is non-empty after write",
+      "severity": "critical",
+      "signals": [
+        "§",
+        "Current status"
+      ]
+    },
+    {
+      "id": "MEM-004",
+      "title": "Memory file does not exceed 2000 characters",
+      "severity": "major",
+      "signals": []
+    }
+  ]
+}
+

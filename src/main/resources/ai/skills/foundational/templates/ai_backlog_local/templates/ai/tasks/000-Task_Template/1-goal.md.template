@@ -1,0 +1,50 @@
+---
+id: {{TASK_TYPE}}-{{TASK_ID}}
+created: {{CREATED_DATETIME}}
+updated: {{UPDATED_DATETIME}}
+status: TODO
+links: []
+reporter: {{REPORTER}}
+assignees: [{{ASSIGNEES}}]
+business-value: {{BUSINESS_VALUE}}
+requirement-clarity: {{REQUIREMENT_CLARITY}}
+severity: {{SEVERITY}}
+effort: {{EFFORT}}
+---
+
+# {{TASK_NAME}} — Goal
+
+Brief summary of the task objective.
+
+## Detailed task checklist
+
+- [ ] Define concrete completion criteria.
+
+## More detailed description
+
+Concise goal statement with only valuable context.
+
+## Actions achieved
+
+_None yet._
+
+## Files created
+
+_None yet._
+
+## Rationale of choices
+
+_N/A._
+
+## Alternatives dropped and rationale
+
+_None._
+
+## Other possible alternatives
+
+_None identified._
+
+## Difficulties encountered
+
+_None yet._
+

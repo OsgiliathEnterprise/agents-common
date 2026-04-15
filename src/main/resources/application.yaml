@@ -7,7 +7,7 @@ langchain4j:
       model-name: ibm/granite-4-h-tiny
       log-requests: true
       log-responses: true
-      timeout: 20s
+      timeout: 50s
       api-key: sk-lm-4LjIq0cR:VIueSQJU4lohBUvy7LUu
       supported-capabilities: response_format_json_schema
       strict-json-schema: true
@@ -16,7 +16,7 @@ langchain4j:
       model-name: ibm/granite-4-h-tiny
       log-requests: true
       log-responses: true
-      timeout: 20s
+      timeout: 50s
       api-key: sk-lm-4LjIq0cR:VIueSQJU4lohBUvy7LUu
 
 # Application Configuration
@@ -44,6 +44,11 @@ mcp:
     supported-protocol-versions:
       - 2024-11-05
 codeprompt:
+  agent:
+    skill-folders:
+      - classpath:ai/skills/foundational/
+    agent-folders:
+      - classpath:ai/agents/
   acp:
     remote:
       enabled: true

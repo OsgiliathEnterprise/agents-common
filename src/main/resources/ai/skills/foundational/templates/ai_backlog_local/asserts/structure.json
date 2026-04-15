@@ -1,0 +1,50 @@
+{
+  "domain": "structure",
+  "checks": [
+    {
+      "id": "BKL-001",
+      "title": "AI backlog root folder exists",
+      "severity": "critical",
+      "required_paths": [
+        "ai/"
+      ],
+      "signals": []
+    },
+    {
+      "id": "BKL-002",
+      "title": "Tasks subfolder exists",
+      "severity": "major",
+      "required_paths": [
+        "ai/tasks/"
+      ],
+      "signals": []
+    },
+    {
+      "id": "BKL-003",
+      "title": "Task template folder present with all phase files",
+      "severity": "critical",
+      "required_paths": [
+        "ai/tasks/001-Project_layout/"
+      ],
+      "required_files": [
+        "ai/tasks/001-Project_layout/1-goal.md",
+        "ai/tasks/001-Project_layout/2-design.md",
+        "ai/tasks/001-Project_layout/3-scenarii.md",
+        "ai/tasks/001-Project_layout/4-tests.md",
+        "ai/tasks/001-Project_layout/5-implementation.md",
+        "ai/tasks/001-Project_layout/6-refactor.md",
+        "ai/tasks/001-Project_layout/7-automation.md",
+        "ai/tasks/001-Project_layout/8-retrospective.md",
+        "ai/tasks/001-Project_layout/9-skills.md",
+        "ai/tasks/001-Project_layout/10-agents.md",
+        "ai/tasks/001-Project_layout/11-doc_promotion.md",
+        "ai/tasks/001-Project_layout/12-doc_explanation.md",
+        "ai/tasks/001-Project_layout/13-doc_reference.md",
+        "ai/tasks/001-Project_layout/14-doc_howto.md",
+        "ai/tasks/001-Project_layout/15-doc_tutorial.md"
+      ],
+      "signals": []
+    }
+  ]
+}
+

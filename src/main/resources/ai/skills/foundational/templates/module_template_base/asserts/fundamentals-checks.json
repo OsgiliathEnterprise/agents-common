@@ -1,0 +1,30 @@
+{
+  "skill": "project-root-fundamentals-assessor",
+  "version": "1.4.0",
+  "placeholder_format": "{{VARIABLE_NAME}}",
+  "template_files": [
+    "templates/build.gradle.kts.template",
+    "templates/settings.gradle.kts.template",
+    "templates/gradle/libs.versions.toml.template",
+    "templates/jreleaser.yml.template",
+    "templates/src/main/java/com/example/Application.java.template",
+    "templates/src/test/java/com/example/cucumber/CucumberTestRunner.java.template",
+    "templates/src/test/java/com/example/cucumber/CucumberSpringConfiguration.java.template"
+  ],
+  "output_contract": {
+    "success_token": "Project layout updated",
+    "deferred_token": "Project layout deferred",
+    "checks": [
+      {
+        "id": "MTB-OUT-001",
+        "severity": "critical",
+        "rule": "Emit success_token only when all required artifacts are present and verified in-run."
+      },
+      {
+        "id": "MTB-OUT-002",
+        "severity": "critical",
+        "rule": "If deferred=true or missing_artifacts is non-empty, never emit success_token and emit deferred_token instead."
+      }
+    ]
+  }
+}

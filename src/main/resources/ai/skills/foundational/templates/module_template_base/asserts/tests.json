@@ -1,0 +1,81 @@
+{
+  "domain": "tests",
+  "checks": [
+    {
+      "id": "MTB-005.1",
+      "title": "Cucumber managed in catalog",
+      "severity": "minor",
+      "required_files": [
+        "gradle/libs.versions.toml"
+      ],
+      "signals": [
+        "cucumber"
+      ]
+    },
+    {
+      "id": "MTB-005.2",
+      "title": "JaCoCo managed in catalog",
+      "severity": "minor",
+      "required_files": [
+        "gradle/libs.versions.toml"
+      ],
+      "signals": [
+        "jacoco"
+      ]
+    },
+    {
+      "id": "MTB-006.1",
+      "title": "Cucumber runner scaffold is present",
+      "severity": "minor",
+      "required_files": [
+        "src/test/java/.*/cucumber/CucumberTestRunner.java",
+        "src/test/java/cucumber/CucumberTestRunner.java"
+      ],
+      "signals": [
+        "@Suite",
+        "@IncludeEngines",
+        "@ConfigurationParameter"
+      ]
+    },
+    {
+      "id": "MTB-006.2",
+      "title": "Cucumber Spring configuration scaffold is present",
+      "severity": "minor",
+      "required_files": [
+        "src/test/java/.*/cucumber/CucumberSpringConfiguration.java",
+        "src/test/java/cucumber/CucumberSpringConfiguration.java"
+      ],
+      "signals": [
+        "@CucumberContextConfiguration",
+        "@SpringBootTest"
+      ]
+    },
+    {
+      "id": "MTB-006.3",
+      "title": "Sample Cucumber feature is present",
+      "severity": "minor",
+      "required_files": [
+        "src/test/resources/features/(.*|sample).feature"
+      ],
+      "signals": [
+        "Feature:",
+        "Scenario:"
+      ]
+    },
+    {
+      "id": "MTB-006.4",
+      "title": "Cucumber properties and sample test dataset are present",
+      "severity": "minor",
+      "required_files": [
+        "src/test/resources/cucumber.properties",
+        "src/test/resources/dataset/config.json"
+      ],
+      "signals": [
+        "cucumber\\.",
+        "application",
+        "testConfig"
+      ]
+    }
+  ]
+}
+

@@ -1,0 +1,52 @@
+{
+  "domain": "ci",
+  "checks": [
+    {
+      "id": "MTB-002.1",
+      "title": "Github release configured",
+      "severity": "major",
+      "required_files": [
+        ".github/workflows/release.yml"
+      ],
+      "signals": []
+    },
+    {
+      "id": "MTB-002.2",
+      "title": "Github release drafter configured",
+      "severity": "minor",
+      "required_files": [
+        ".github/workflows/release-draft.yml"
+      ],
+      "signals": []
+    },
+    {
+      "id": "MTB-002.3",
+      "title": "Dependabot configured",
+      "severity": "major",
+      "required_files": [
+        ".github/dependabot.yml"
+      ],
+      "signals": [
+        "package-ecosystem:\\s*\\\"?gradle\\\"?",
+        "directory:\\s*\\\"/\\\""
+      ]
+    },
+    {
+      "id": "MTB-002.4",
+      "title": "GitHub CI configured",
+      "severity": "critical",
+      "required_files": [
+        ".github/workflows/ci.yml"
+      ],
+      "signals": [
+        "on:",
+        "push:",
+        "pull_request:",
+        "\\./gradlew",
+        "test",
+        "jacoco"
+      ]
+    }
+  ]
+}
+

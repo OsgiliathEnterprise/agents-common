@@ -1,0 +1,50 @@
+---
+id: {{TASK_TYPE}}-{{TASK_ID}}
+created: {{CREATED_DATETIME}}
+updated: {{UPDATED_DATETIME}}
+status: TODO
+links: []
+reporter: {{REPORTER}}
+assignees: [{{ASSIGNEES}}]
+business-value: {{BUSINESS_VALUE}}
+requirement-clarity: {{REQUIREMENT_CLARITY}}
+severity: {{SEVERITY}}
+effort: {{EFFORT}}
+---
+
+# {{TASK_NAME}} — Tests
+
+Test implementation from Gherkin; `Then` steps expected to fail before implementation.
+
+## Detailed task checklist
+
+- [ ] Define concrete completion criteria.
+
+## More detailed description
+
+Translate Gherkin scenarios into executable test code. Tests must compile but fail on assertions (`Then` step) until production code is written.
+
+## Actions achieved
+
+_None yet._
+
+## Files created
+
+_None yet._
+
+## Rationale of choices
+
+Red phase of Red-Green-Refactor cycle.
+
+## Alternatives dropped and rationale
+
+_None._
+
+## Other possible alternatives
+
+_None identified._
+
+## Difficulties encountered
+
+_None yet._
+

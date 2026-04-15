@@ -1,3 +1,4 @@
 .gradle
 build
 !src/test/resources/dataset/workspace/.git/*
+bin

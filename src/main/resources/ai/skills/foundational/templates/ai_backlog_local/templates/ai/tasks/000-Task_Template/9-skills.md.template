@@ -1,0 +1,50 @@
+---
+id: {{TASK_TYPE}}-{{TASK_ID}}
+created: {{CREATED_DATETIME}}
+updated: {{UPDATED_DATETIME}}
+status: TODO
+links: []
+reporter: {{REPORTER}}
+assignees: [{{ASSIGNEES}}]
+business-value: {{BUSINESS_VALUE}}
+requirement-clarity: {{REQUIREMENT_CLARITY}}
+severity: {{SEVERITY}}
+effort: {{EFFORT}}
+---
+
+# {{TASK_NAME}} — Skills
+
+New skills created to address retrospective findings.
+
+## Detailed task checklist
+
+- [ ] Define concrete completion criteria.
+
+## More detailed description
+
+List of skills extracted from this task to improve future work.
+
+## Actions achieved
+
+_None yet._
+
+## Files created
+
+_None yet._
+
+## Rationale of choices
+
+Codify learnings as reusable skills for AI agents.
+
+## Alternatives dropped and rationale
+
+_None._
+
+## Other possible alternatives
+
+_None identified._
+
+## Difficulties encountered
+
+_None yet._
+

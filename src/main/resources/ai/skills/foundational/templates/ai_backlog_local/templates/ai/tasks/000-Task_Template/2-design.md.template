@@ -1,0 +1,50 @@
+---
+id: {{TASK_TYPE}}-{{TASK_ID}}
+created: {{CREATED_DATETIME}}
+updated: {{UPDATED_DATETIME}}
+status: TODO
+links: []
+reporter: {{REPORTER}}
+assignees: [{{ASSIGNEES}}]
+business-value: {{BUSINESS_VALUE}}
+requirement-clarity: {{REQUIREMENT_CLARITY}}
+severity: {{SEVERITY}}
+effort: {{EFFORT}}
+---
+
+# {{TASK_NAME}} — Design
+
+ADR and design rationale summary.
+
+## Detailed task checklist
+
+- [ ] Define concrete completion criteria.
+
+## More detailed description
+
+Key architectural decisions and their justification.
+
+## Actions achieved
+
+_None yet._
+
+## Files created
+
+_None yet._
+
+## Rationale of choices
+
+Document ADR-style records: context, decision, consequences.
+
+## Alternatives dropped and rationale
+
+_None._
+
+## Other possible alternatives
+
+_None identified._
+
+## Difficulties encountered
+
+_None yet._
+

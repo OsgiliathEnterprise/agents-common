@@ -12,8 +12,8 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  BRIDGE_VERSION: "1.0.22"
-  AGENT_SDK_VERSION: "0.0.8"
+  BRIDGE_VERSION: "1.0.24"
+  AGENT_SDK_VERSION: "0.0.15"
   SPRING_PROFILES_ACTIVE: github
   MODEL_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 jobs:
@@ -37,7 +37,7 @@ jobs:
           distribution: 'temurin'
 
       - name: Validate Gradle wrapper
-        uses: gradle/actions/wrapper-validation@39e147cb9de83bb9910b8ef8bd7fff0ee20fcd6f # vv6.0.1
+        uses: gradle/actions/wrapper-validation@50e97c2cd7a37755bbfafc9c5b7cafaece252f6e # v6.1.0
 
       - name: Make gradlew executable
         run: chmod +x ./gradlew
@@ -318,7 +318,7 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Submit dependency graph
-        uses: gradle/actions/dependency-submission@39e147cb9de83bb9910b8ef8bd7fff0ee20fcd6f # v6.0.1
+        uses: gradle/actions/dependency-submission@50e97c2cd7a37755bbfafc9c5b7cafaece252f6e # v6.1.0
 
   ci-summary:
     runs-on: ubuntu-latest
@@ -344,7 +344,7 @@ jobs:
 
       - name: Create PR summary comment
         if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |

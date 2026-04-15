@@ -1,0 +1,64 @@
+---
+id: {{TASK_TYPE}}-{{TASK_ID}}
+created: {{CREATED_DATETIME}}
+updated: {{UPDATED_DATETIME}}
+status: TODO
+links: []
+reporter: {{REPORTER}}
+assignees: [{{ASSIGNEES}}]
+business-value: {{BUSINESS_VALUE}}
+requirement-clarity: {{REQUIREMENT_CLARITY}}
+severity: {{SEVERITY}}
+effort: {{EFFORT}}
+---
+
+# {{TASK_NAME}} — Scenarii
+
+Gherkin scenarios including edge cases.
+
+## Detailed task checklist
+
+- [ ] Define concrete completion criteria.
+
+## More detailed description
+
+List BDD scenarios covering happy path and edge cases.
+
+```gherkin
+Feature: {{TASK_NAME}}
+
+  Scenario: Happy path
+    Given precondition
+    When action
+    Then expected outcome
+
+  Scenario: Edge case
+    Given edge precondition
+    When action
+    Then edge outcome
+```
+
+## Actions achieved
+
+_None yet._
+
+## Files created
+
+_None yet._
+
+## Rationale of choices
+
+Scenarios derived from goal and design phases.
+
+## Alternatives dropped and rationale
+
+_None._
+
+## Other possible alternatives
+
+_None identified._
+
+## Difficulties encountered
+
+_None yet._
+
